@@ -19,6 +19,7 @@ app.get('/list.json', function (req, res) {
     try {
         var json = require("./list.json");
     } catch (err) {
+        console.error("list.json not found!");
         res.json({});
         return;
     };
@@ -94,4 +95,10 @@ app.get('/list.json', function (req, res) {
 
 });
 
-app.listen(3000);
+var port = Number(process.argv[2]);
+if (!(port >= 0 && port < 65536)) {
+    port = 3000;
+}
+
+console.log("Listen at port " + port);
+app.listen(port);
