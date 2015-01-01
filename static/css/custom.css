@@ -1,3 +1,7 @@
+th {
+  font-size: 120%;
+}
+
 .zh-title {
   font-weight: bold;
   font-family: serif;
@@ -22,6 +26,11 @@
 
 .mv-rating {
   font-size: 140%;
+  font-weight: bold;
+}
+
+.mv-year {
+  font-size: 140%;
 }
 
 .header {
@@ -33,7 +42,7 @@
 }
 
 .plevel {
-  font-size: 60%;
+  font-size: 50%;
   font-family: monospace;
 }
 
