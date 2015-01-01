@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <title>MOVIE: Table View</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/custom.css">
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/ready.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+  <script src="/js/jquery.tablesorter.min.js"></script>
+</head>
+<body>
+  <div class="container">
+
+    <div class="row header">
+      <div class="col-xs-3">
+        <a href="/"><h3>MOVIE LIST</h3></a>
+      </div>
+      <div class="col-xs-9">
+
+        <form class="form-inline" role="form" id="searchform">
+          <input type="text" list="data-name" autocomplete="off"
+                 class="form-control" placeholder="关键词" id="searchkey">
+
+          <datalist id="data-name">
+          </datalist>
+
+          <datalist id="data-genre">
+          </datalist>
+
+          <datalist id="data-path">
+          </datalist>
+
+          <select class="form-control" id="searchtype" name="type">
+            <option value="name">电影名称</option>
+            <option value="genre">电影类型</option>
+            <option value="path">文件路径（通配符）</option>
+          </select>
+
+          <button type="button" class="btn btn-default" id="searchbutton">搜索</button>
+          <button type="button" class="btn btn-default" id="resetbutton">清空</button>
+        </form>
+      </div>
+    </div>
+
+    <table id="movie-table" class="table">
+      <thead>
+        <tr>
+          <th>电影名称</th>
+          <th>上映时间</th>
+          <th>豆瓣评分</th>
+          <th>电影类型</th>
+          <th>文件信息</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+</body>
+</html>

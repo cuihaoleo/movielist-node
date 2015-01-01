@@ -1,0 +1,68 @@
+.zh-title {
+  font-weight: bold;
+  font-family: serif;
+  font-size: 120%;
+}
+
+.orig-title{
+  margin-left: 10px;
+  font-family: sans-serif;
+  font-size: 80%;
+}
+
+#searchform {
+  margin-top: 20px;
+  float: right;
+}
+
+.mv-genre {
+  display: inline-block;
+  margin-left: 3px;
+}
+
+.mv-rating {
+  font-size: 140%;
+}
+
+.header {
+  margin-top: 5px;
+}
+
+.plevel:before {
+  content: "• "
+}
+
+.plevel {
+  font-size: 60%;
+  font-family: monospace;
+}
+
+.tablesorter-headerRow {
+  cursor: pointer;
+}
+
+.tablesorter-header-inner {
+  display: flex;
+  white-space: nowrap;
+}
+
+.tablesorter-headerUnSorted .tablesorter-header-inner:after {
+  font-family: "Glyphicons Halflings";
+  content: "";
+  margin-left: 0.5em;
+  font-size: 80%;
+}
+
+.tablesorter-headerDesc .tablesorter-header-inner:after {
+  font-family: "Glyphicons Halflings";
+  content: "";
+  margin-left: 0.5em;
+  font-size: 80%;
+}
+
+.tablesorter-headerAsc .tablesorter-header-inner:after {
+  font-family: "Glyphicons Halflings";
+  content: "";
+  margin-left: 0.5em;
+  font-size: 80%;
+}
