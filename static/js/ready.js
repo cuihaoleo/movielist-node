@@ -16,47 +16,47 @@ $.getJSON("/list.json", function (data) {
 
   $.each(data, function (key, val) {
     if (val.api_success){
-      var this_row = $("<tr></tr>").attr('id', 'm'+key);
+      var this_row = $("<tr>").attr('id', 'm'+key);
 
       // movie name
-      var name_col = $("<td></td>");
+      var name_col = $("<td>");
 
-      var zh_name_a = $("<a></a>").attr('href', DBMOVIE_SUB + key).text(val.title[0]);
-      var zh_name_div = $("<div></div>").addClass("zh-title");
+      var zh_name_a = $("<a>").attr('href', DBMOVIE_SUB + key).text(val.title[0]);
+      var zh_name_div = $("<div>").addClass("zh-title");
       zh_name_div.append(zh_name_a);
       name_col.append(zh_name_div);
 
       if (val.title[0] != val.title[1]) {
-        var orig_name_div = $("<div></div>").addClass("orig-title").text(val.title[1]);
+        var orig_name_div = $("<div>").addClass("orig-title").text(val.title[1]);
         name_col.append(orig_name_div);
       }
 
       this_row.append(name_col);
 
       // release year
-      var year_col = $("<td></td>");
-      var year_div = $("<div></div>").addClass("mv-year").text(val.year);
+      var year_col = $("<td>");
+      var year_div = $("<div>").addClass("mv-year").text(val.year);
       year_col.append(year_div);
       this_row.append(year_col);
 
       // rating
-      var rating_col = $("<td></td>");
-      var rating_div = $("<div></div>").addClass("mv-rating").text(val.rating.toFixed(1));
+      var rating_col = $("<td>");
+      var rating_div = $("<div>").addClass("mv-rating").text(val.rating.toFixed(1));
       rating_col.append(rating_div);
       this_row.append(rating_col);
 
       // genres
-      var genres_col = $("<td></td>");
+      var genres_col = $("<td>");
       //var genre_div = $("<div></div>").addClass("mv-genre").text(val.genres[i]);
       for (var i=0; i<val.genres.length; i++) {
-        var genre_span = $("<span></span>").addClass("label label-primary mv-genre");
+        var genre_span = $("<span>").addClass("label label-primary mv-genre");
         genre_span.text(val.genres[i]);
         genres_col.append(genre_span);
       }
       this_row.append(genres_col);
 
       // file info
-      var files_col = $("<td></td>");
+      var files_col = $("<td>");
       var cd = [];
       for (var i=0; i<val.files.length; i++) {
         var cpath = val.files[i].path;
@@ -68,7 +68,7 @@ $.getJSON("/list.json", function (data) {
         for (var j=cd.length; j<cpath.length; j++)
         {
           cd.push(cpath[j]);
-          var fp_div = $("<div></div>").addClass("plevel").css("margin-left", j + "em");
+          var fp_div = $("<div>").addClass("plevel").css("margin-left", j + "em");
           fp_div.text(cpath[j]);
           files_col.append(fp_div);
         }
@@ -82,11 +82,11 @@ $.getJSON("/list.json", function (data) {
 
       // autocomplete
       val.title.forEach( function (e) {
-        var opt = $("<option></option>").attr('value', e);
+        var opt = $("<option>").attr('value', e);
         $('#data-name').append(opt);
       });
       val.aka.forEach( function (e) {
-        var opt = $("<option></option>").attr('value', e);
+        var opt = $("<option>").attr('value', e);
         $('#data-name').append(opt);
       });
 
