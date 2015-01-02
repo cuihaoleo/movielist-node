@@ -66,7 +66,8 @@ app.get('/list.json', function (req, res) {
             var fpath = elem[0], finfo = elem[1];
 
             parse_file_list.getMID(fpath, function (err, mid) {
-                if (err) {
+                if (err || !mid || mid == -1) {
+                    release();
                     return;
                 }
                 
@@ -87,18 +88,14 @@ app.get('/list.json', function (req, res) {
 
     cb_lock.writeLock("L1", function (release) {
         for (var prop in ret) {
-            if (last_ret[prop] && last_ret[prop].api_success) {
-                var fp = ret[prop].files;
-                ret[prop] = last_ret[prop];
-                ret[prop].files = fp;
-                continue;
-            }
-
             if (ret.hasOwnProperty(prop)) {
                 var mid = Number(prop);
-                if (mid <= 0) {
-                    ret[prop].api_success = false;
-                    continue
+
+                if (last_ret[prop]) {
+                    var fp = ret[prop].files;
+                    ret[prop] = last_ret[prop];
+                    ret[prop].files = fp;
+                    continue;
                 }
 
                 {{{ ( function (mid) {
@@ -106,10 +103,9 @@ app.get('/list.json', function (req, res) {
                     douban_movie.
                      getMovieInfoFromCache(mid, function (err, reply) {
                         if (err) {
-                            ret[mid.toString()].api_success = false;
-                        } else
-                        {
-                            ret[mid.toString()].api_success = true;
+                            delete ret[mid.toString()];
+                        }
+                        else{
                             fillMovieInfo(ret[mid.toString()], reply);
                         }
                         release();
