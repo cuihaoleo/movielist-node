@@ -159,7 +159,16 @@ $.getJSON("/list.json", function (data) {
       });
     }
     else if (type == 'path'){
-      // todo
+      var re = new RegExp(keyword, "i");
+      $.each($(document).data("list"), function (key, val) {
+        if (val.api_success) {
+          $("#m" + key).hide();
+          val.files.forEach(function (f) {
+              var path = f.path.join('/');
+              path.search(re) != -1 ? $("#m" + key).show() : 0;
+          });
+        }
+      });
     }
   });
 
