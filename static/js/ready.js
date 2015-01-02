@@ -1,6 +1,19 @@
 var DBMOVIE_SUB = "http://movie.douban.com/subject/";
 var loaded = false;
 
+// from: https://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
+function humanFileSize (bytes, si) {
+    var thresh = si ? 1000 : 1024;
+    if(bytes < thresh) return bytes + ' B';
+    var units = si ? ['kB','MB','GB','TB','PB','EB','ZB','YB'] : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+    var u = -1;
+    do {
+        bytes /= thresh;
+        ++u;
+    } while(bytes >= thresh);
+    return bytes.toFixed(2)+' '+units[u];
+};
+
 $(document).ready(function() {
   loaded = true;
 });
@@ -72,6 +85,13 @@ $.getJSON("/list.json", function (data) {
           fp_div.text(cpath[j]);
           files_col.append(fp_div);
         }
+
+        var size_span = $("<span>").addClass("file-size");
+        var time_span = $("<span>").addClass("file-time");
+        size_span.text(humanFileSize(val.files[i].size));
+        time_span.text(val.files[i].time);
+        fp_div.append(size_span);
+        fp_div.append(time_span);
 
         cd.pop();
       }

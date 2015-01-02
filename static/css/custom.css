@@ -42,8 +42,28 @@ th {
 }
 
 .plevel {
-  font-size: 50%;
+  word-break: break-all;
+  font-size: 40%;
   font-family: monospace;
+}
+
+.file-size, .file-time{
+  word-break: keep-all;
+  white-space: nowrap;
+  font-size: 40%;
+  color: #888;
+}
+
+.file-size:before {
+  content: " (";
+}
+
+.file-size:after {
+  content: ", ";
+}
+
+.file-time:after {
+  content: ")";
 }
 
 .tablesorter-headerRow {
