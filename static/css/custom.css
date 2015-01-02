@@ -43,14 +43,14 @@ th {
 
 .plevel {
   word-break: break-all;
-  font-size: 40%;
+  font-size: 75%;
   font-family: monospace;
 }
 
 .file-size, .file-time{
   word-break: keep-all;
   white-space: nowrap;
-  font-size: 40%;
+  font-size: 75%;
   color: #888;
 }
 
