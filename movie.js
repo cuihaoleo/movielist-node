@@ -8,6 +8,7 @@ var app = express();
 
 var filelist_mtime = new Date(0);
 var filelist = [];
+var last_ret = new Object();
 
 app.use(express.static(__dirname + '/static'));
 
@@ -49,6 +50,7 @@ function loadFileList () {
         console.log("list.json reloaded!");
         filelist_mtime = stats.mtime;
         filelist = tmp;
+        last_ret = new Object();
     });
 }
 
@@ -85,6 +87,13 @@ app.get('/list.json', function (req, res) {
 
     cb_lock.writeLock("L1", function (release) {
         for (var prop in ret) {
+            if (last_ret[prop] && last_ret[prop].api_success) {
+                var fp = ret[prop].files;
+                ret[prop] = last_ret[prop];
+                ret[prop].files = fp;
+                continue;
+            }
+
             if (ret.hasOwnProperty(prop)) {
                 var mid = Number(prop);
                 if (mid <= 0) {
