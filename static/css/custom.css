@@ -1,4 +1,4 @@
-th {
+#table-title {
   font-size: 120%;
 }
 
@@ -71,13 +71,8 @@ th {
   content: ")";
 }
 
-.tablesorter-headerRow {
+.unsorted,.sortdown,.sortup {
   cursor: pointer;
-}
-
-.tablesorter-header-inner {
-  display: flex;
-  white-space: nowrap;
 }
 
 .unsorted:after {

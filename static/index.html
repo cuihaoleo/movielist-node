@@ -1,7 +1,9 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <title>MOVIE: Table View</title>
+  <title>电影列表</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="UTF-8">
   <link rel="stylesheet" href="/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/custom.css">
   <script src="/js/jquery.min.js"></script>
@@ -44,7 +46,7 @@
           <div class="btn-group">
             <button type="button" class="btn btn-default" id="first-page">&laquo;</button>
             <button type="button" class="btn btn-default" id="prev-page">上页</button>
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="btn btn-default" data-toggle="dropdown" aria-expanded="false">
               <span id="page-tip">
                 <span id="current-page"></span> / <span id="max-page"></span>
                 <span class="caret"></span>
@@ -64,7 +66,7 @@
     <div class="row">
       <table id="movie-table" class="table">
         <thead>
-          <tr>
+          <tr id="table-title">
             <th style="width: 24%" class="unsorted" data-sortby="title">电影名称</th>
             <th style="width: 10%" class="unsorted" data-sortby="year">上映时间</th>
             <th style="width: 10%" class="unsorted" data-sortby="rating">豆瓣评分</th>
@@ -77,5 +79,6 @@
       </table>
     </div>
   </div>
+
 </body>
 </html>
