@@ -15,12 +15,17 @@ th {
 }
 
 #searchform {
-  margin-top: 20px;
+  float: left;
+}
+
+#page-select {
   float: right;
+  margin-left: 1em;
 }
 
 .mv-genre {
   display: inline-block;
+  font-size: 120%;
   margin-left: 3px;
 }
 
@@ -75,21 +80,21 @@ th {
   white-space: nowrap;
 }
 
-.tablesorter-headerUnSorted .tablesorter-header-inner:after {
+.unsorted:after {
   font-family: "Glyphicons Halflings";
   content: "";
   margin-left: 0.5em;
   font-size: 80%;
 }
 
-.tablesorter-headerDesc .tablesorter-header-inner:after {
+.sortdown:after {
   font-family: "Glyphicons Halflings";
   content: "";
   margin-left: 0.5em;
   font-size: 80%;
 }
 
-.tablesorter-headerAsc .tablesorter-header-inner:after {
+.sortup:after {
   font-family: "Glyphicons Halflings";
   content: "";
   margin-left: 0.5em;

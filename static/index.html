@@ -12,17 +12,15 @@
 <body>
   <div class="container">
 
-    <div class="row header">
-      <div class="col-xs-3">
-        <a href="/"><h3>MOVIE LIST</h3></a>
-      </div>
-      <div class="col-xs-9">
+    <div class="row"><br /></row>
 
+    <div class="row">
+      <div class="col-xs-6">
         <form class="form-inline" role="form" id="searchform">
-          <input type="text" list="data-name" autocomplete="off"
-                 class="form-control" placeholder="关键词" id="searchkey">
+          <input type="text" list="data-title" autocomplete="off"
+          class="form-control" placeholder="关键词" id="searchkey">
 
-          <datalist id="data-name">
+          <datalist id="data-title">
           </datalist>
 
           <datalist id="data-genre">
@@ -32,7 +30,7 @@
           </datalist>
 
           <select class="form-control" id="searchtype" name="type">
-            <option value="name">电影名称</option>
+            <option value="title">电影名称</option>
             <option value="genre">电影类型</option>
             <option value="path">文件路径（正则）</option>
           </select>
@@ -41,19 +39,44 @@
           <button type="button" class="btn btn-default" id="resetbutton">清空</button>
         </form>
       </div>
+
+      <div class="col-xs-6">
+        <div id="page-select">
+          <div class="btn-group">
+            <button type="button" class="btn btn-default" id="first-page">&laquo;</button>
+            <button type="button" class="btn btn-default" id="prev-page">上页</button>
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+              <span id="page-tip">
+                <span id="current-page"></span> / <span id="max-page"></span>
+                <span class="caret"></span>
+              </span>
+            </button>
+            <ul class="dropdown-menu" role="menu" id="page-select-menu">
+            </ul>
+            <button type="button" class="btn btn-default" id="next-page">下页</button>
+            <button type="button" class="btn btn-default" id="last-page">&raquo;</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <table id="movie-table" class="table">
-      <thead>
-        <tr>
-          <th style="width: 24%">电影名称</th>
-          <th style="width: 8%">上映时间</th>
-          <th style="width: 8%">豆瓣评分</th>
-          <th style="width: 20%">电影类型</th>
-          <th style="width: 40%">文件信息</th>
-        </tr>
-      </thead>
-    </table>
+    <div class="row"><br /></row>
+
+    <div class="row">
+      <table id="movie-table" class="table">
+        <thead>
+          <tr>
+            <th style="width: 24%" class="unsorted" data-sortby="title">电影名称</th>
+            <th style="width: 10%" class="unsorted" data-sortby="year">上映时间</th>
+            <th style="width: 10%" class="unsorted" data-sortby="rating">豆瓣评分</th>
+            <th style="width: 16%">电影类型</th>
+            <th style="width: 40%">文件信息</th>
+          </tr>
+        </thead>
+        <tbody id="movie-table-body">
+        </tbody>
+      </table>
+    </div>
   </div>
 </body>
 </html>

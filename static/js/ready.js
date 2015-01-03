@@ -1,5 +1,7 @@
 var DBMOVIE_SUB = "http://movie.douban.com/subject/";
-var loaded = false;
+var all_movies = [];
+var movie_data = [];
+var entry_per_page = 50;
 
 function humanFileSize (bytes) {
     var thresh = 1024;
@@ -13,17 +15,12 @@ function humanFileSize (bytes) {
     return bytes.toFixed(2) + ' ' + units[u];
 };
 
-$(document).ready(function() {
-  loaded = true;
-});
-
-var genres = [];
-
-function addRow (key, val) {
+function addRow (key) {
+  var val = movie_data[key];
   var this_row = $("<tr>").attr('id', 'm'+key);
-  $("#movie-table").append(this_row);
+  $("#movie-table-body").append(this_row);
 
-  // movie name
+  // movie title
   var name_col = $("<td>");
   this_row.append(name_col);
 
@@ -36,6 +33,7 @@ function addRow (key, val) {
     name_col.append(orig_name_div);
   }
 
+  // year
   this_row.append($("<td>").addClass("mv-year").text(val.year));
 
   // rating
@@ -46,11 +44,16 @@ function addRow (key, val) {
 
   // genres
   var genres_col = $("<td>");
-  for (var i=0; i<val.genres.length; i++) {
-    var genre_span = $("<span>").addClass("label label-primary mv-genre");
-    genre_span.text(val.genres[i]);
+  val.genres.forEach(function (genre) {
+    var genre_span = $("<a>").addClass("label label-primary mv-genre");
+    genre_span.text(genre);
     genres_col.append(genre_span);
-  }
+    genre_span.click(function () {
+      $("#searchtype").val("genre");
+      $("#searchkey").val(genre);
+      $('#searchbutton').click();
+    });
+  });
   this_row.append(genres_col);
 
   // file info
@@ -81,43 +84,133 @@ function addRow (key, val) {
     cd.pop();
   }
   this_row.append(files_col);
-
-  // autocomplete
-  val.title.forEach( function (e) {
-    $('#data-name').append($("<option>").attr('value',e));
-  });
-
-  for (var i=0; i<val.genres.length; i++) {
-    var genre = val.genres[i];
-    if (genres.indexOf(genre) == -1) {
-      $('#data-genre').append("<option>"+genre+"</option>");
-      genres.push(genre[i]);
-    }
-  }
 }
 
-$.getJSON("/list.json", function (data) {
-  while (!loaded) {
-    continue;
+function changePage (page) {
+  var maxpage = $("#movie-table").data("maxpage");
+
+  if (page >= maxpage || page < 0) {
+    return;
   }
 
-  var start_time = (new Date()).getTime();
+  var todisplay = all_movies.slice(page*entry_per_page, (page+1)*(entry_per_page));
 
-  $(document).data("list", data);
+  $("#movie-table").data("page", page);
 
-  var timeout = 0;
-  $.each(data, function (key, val) {
-    setTimeout(addRow, timeout += 8, key, val);
+  $("#movie-table-body").empty();
+  todisplay.forEach(function (mid) {
+    addRow(mid);
   });
 
-  $("input").attr("disabled", "disabled");
-  $("#movie-table").addClass("tablesorter");
-  setTimeout(function () {
-      $("input").removeAttr("disabled");
-      $("#movie-table").tablesorter();
-      var end_time = (new Date()).getTime();
-      console.log("Time to parse json:", (end_time - start_time)/1000);
-  }, timeout + 500);
+  $("#current-page").text(page+1);
+  $("#max-page").text(maxpage);
+}
+
+function setupPages () {
+  var page_n = Math.ceil(all_movies.length / entry_per_page);
+  $("#movie-table").data("maxpage", page_n != 0 ? page_n : 1);
+
+  $("#page-select-menu").empty();
+  for (var i=0; i<page_n; i++) {
+    var button = $("<a>").attr("id","page"+i).text("第 "+(i+1)+" 页");
+    $("#page-select-menu").append($("<li>").append(button));
+
+    (function (page) {
+      button.click(function () {changePage(page);});
+    })(i);
+  }
+
+  changePage(0);
+}
+
+function showAllMovies () {
+  all_movies = [];
+  $.each(movie_data, function (key, val) {
+    all_movies.push(key);
+  });
+  setupPages();
+}
+
+function filterMovieByGenre (genre) {
+  all_movies = [];
+  $.each(movie_data, function (key, val) {
+    if (val.genres.indexOf(genre) != -1) {
+      all_movies.push(key);
+    }
+  });
+  setupPages();
+}
+
+function filterMovieByPath (re) {
+  all_movies = [];
+  $.each(movie_data, function (key, val) {
+    var found = false;
+    val.files.forEach(function (elem) {
+      var p = elem.path.join('/');
+      if (p.search(re) != -1) {
+        found = true;
+        return false;
+      }
+    });
+    found ? all_movies.push(key) : 0;
+  });
+  setupPages();
+}
+
+function filterMovieByTitle (title) {
+  all_movies = [];
+  $.each(movie_data, function (key, val) {
+    var found = false;
+    val.title.concat(val.aka).forEach(function (ele){
+      if (ele.toLowerCase().search(title) != -1) {
+        found = true;
+        return false;
+      }
+    });
+    found ? all_movies.push(key) : 0;
+  });
+  setupPages();
+}
+
+function sortMovieBy (sortby, reverse) {
+  if (sortby == 'title') {
+    all_movies.sort(function (a, b) {
+      return movie_data[a].title[0].localeCompare(movie_data[b].title[0], 'zh-Hans-CN');
+    });
+  } else {
+    all_movies.sort(function (a, b) {
+      return movie_data[a][sortby] - movie_data[b][sortby];
+    });
+  }
+
+  reverse ? all_movies.reverse() : 0;
+  changePage(0);
+}
+
+$(document).ready(function() {
+
+  $.getJSON("/list.json", function (data) {
+    movie_data = data;
+
+    var genres = [];
+    $.each(data, function (key, val) {
+      // autocomplete
+      val.title.forEach( function (e) {
+        $('#data-title').append($("<option>").attr('value',e));
+      });
+
+      val.genres.forEach(function (e) {
+        if (genres.indexOf(e) == -1) {
+          $('#data-genre').append("<option>"+e+"</option>");
+          genres.push(e);
+        }
+      })
+
+      all_movies.push(key);
+    });
+
+    setupPages();
+  });
 
   $('#searchkey').attr('list', "data-" + $('#searchtype').val());
 
@@ -129,40 +222,15 @@ $.getJSON("/list.json", function (data) {
     var type = $("#searchtype").val();
     var keyword = $("#searchkey").val();
 
-    if (type == 'name') {
-      $.each($(document).data("list"), function (key, val) {
-
-        var names = val.title.concat(val.aka);
-        var found = false;
-
-        for (var i=0; i<names.length; i++) {
-          if (names[i].search(keyword) != -1) {
-            found = true;
-            break;
-          }
-        }
-
-        found ? $("#m" + key).show() : $("#m" + key).hide();
-      });
+    if (type == 'title') {
+      filterMovieByTitle(keyword);
     }
     else if (type == 'genre') {
-      $.each($(document).data("list"), function (key, val) {
-        if (val.api_success) {
-          val.genres.indexOf(keyword) != -1 ? $("#m" + key).show() : $("#m" + key).hide();
-        }
-      });
+      filterMovieByGenre(keyword);
     }
     else if (type == 'path'){
       var re = new RegExp(keyword, "i");
-      $.each($(document).data("list"), function (key, val) {
-        if (val.api_success) {
-          $("#m" + key).hide();
-          val.files.forEach(function (f) {
-              var path = f.path.join('/');
-              path.search(re) != -1 ? $("#m" + key).show() : 0;
-          });
-        }
-      });
+      filterMovieByPath(re);
     }
   });
 
@@ -177,6 +245,38 @@ $.getJSON("/list.json", function (data) {
 
   $('#resetbutton').click(function () {
     $("#searchkey").val("");
-    $('#searchbutton').click();
+    showAllMovies();
   });
+
+  $('body').on('click', '.unsorted', function() {
+    var sortby = $(this).data("sortby");
+
+    $('.sortdown, .sortup').addClass('unsorted');
+    $('.sortdown').removeClass('sortdown');
+    $('.sortup').removeClass('sortup');
+
+    $(this).removeClass('unsorted');
+    $(this).addClass('sortdown');
+
+    sortMovieBy(sortby);
+  });
+
+  $('body').on('click', '.sortdown', function() {
+    var sortby = $(this).data("sortby");
+    $(this).removeClass('sortdown');
+    $(this).addClass('sortup');
+    sortMovieBy(sortby, true);
+  });
+
+  $('body').on('click', '.sortup', function() {
+    var sortby = $(this).data("sortby");
+    $(this).removeClass('sortup');
+    $(this).addClass('sortdown');
+    sortMovieBy(sortby);
+  });
+
+  $('#first-page').click(function () {changePage(0);});
+  $('#last-page').click(function () {changePage($("#movie-table").data("maxpage")-1)});
+  $('#prev-page').click(function () {changePage($("#movie-table").data("page")-1)});
+  $('#next-page').click(function () {changePage($("#movie-table").data("page")+1)});
 });
