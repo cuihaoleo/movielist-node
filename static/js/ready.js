@@ -131,9 +131,6 @@ $.getJSON("/list.json", function (data) {
 
     if (type == 'name') {
       $.each($(document).data("list"), function (key, val) {
-        if (val.api_success == false) {
-          return;
-        }
 
         var names = val.title.concat(val.aka);
         var found = false;
