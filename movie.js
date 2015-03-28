@@ -24,7 +24,7 @@ function loadFileList () {
     fs.stat("list.json", function (err, stats) {
         if (err) {
             console.error("Cannot read list.json !");
-            return;
+            throw err;
         }
 
         if (stats.mtime - filelist_mtime == 0) {
@@ -35,7 +35,7 @@ function loadFileList () {
             var li = require('./list.json');
         } catch (e) {
             console.error("Cannot read list.json!");
-            return;
+            throw e;
         }
 
         var tmp = [];
