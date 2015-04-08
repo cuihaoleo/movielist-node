@@ -3,6 +3,7 @@ var parse_file_list = require("./lib/parse_file_list");
 var ReadWriteLock = require('rwlock');
 var fs = require('fs');
 
+var compression = require("compression");
 var express = require('express');
 var app = express();
 
@@ -11,6 +12,7 @@ var filelist = [];
 var last_ret = new Object();
 
 app.use(express.static(__dirname + '/static'));
+app.use(compression());
 
 function fillMovieInfo (obj, minfo) {
     obj.year = minfo.year;
