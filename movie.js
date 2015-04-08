@@ -11,8 +11,6 @@ var filelist_mtime = new Date(0);
 var filelist = [];
 var last_ret = new Object();
 
-app.use(express.static(__dirname + '/static'));
-app.use(compression());
 
 function fillMovieInfo (obj, minfo) {
     obj.year = minfo.year;
@@ -22,7 +20,8 @@ function fillMovieInfo (obj, minfo) {
     obj.aka = minfo.aka;
 }
 
-function loadFileList () {
+
+function loadFileList (callback) {
     fs.stat("list.json", function (err, stats) {
         if (err) {
             console.error("Cannot read list.json !");
@@ -53,10 +52,14 @@ function loadFileList () {
         filelist_mtime = stats.mtime;
         filelist = tmp;
         last_ret = new Object();
+
+        callback && callback();
     });
 }
 
-app.get('/list.json', function (req, res) {
+
+        
+function http_get_list_json (req, res) {
     var start_time = (new Date()).getTime();
     var ret = new Object();
     var cb_lock = new ReadWriteLock();
@@ -118,7 +121,7 @@ app.get('/list.json', function (req, res) {
         }
 
         cb_lock.writeLock("L2", function (release) {
-            res.json(ret);
+            res && res.json(ret);
             var end_time = (new Date()).getTime();
             console.log("Response time:", (end_time - start_time)/1000);
             last_ret = ret;
@@ -127,7 +130,12 @@ app.get('/list.json', function (req, res) {
 
         release();
     });
-});
+};
+
+
+app.use(express.static(__dirname + '/static'));
+app.use(compression());
+app.get('/list.json', http_get_list_json);
 
 
 if (require.main === module) {
@@ -138,7 +146,7 @@ if (require.main === module) {
         port = 3000;
     }
 
-    loadFileList();
+    loadFileList(http_get_list_json);
 
     console.log("Listen at port " + port);
     app.listen(port);
