@@ -199,7 +199,6 @@ $(document).ready(function() {
     movie_data = data;
 
     $.each(data, function (key, val) {
-      // autocomplete
       val.title.forEach( function (e) {
         if (autocomp_name.indexOf(e) == -1) {
           autocomp_name.push(e);
@@ -233,12 +232,6 @@ $(document).ready(function() {
       }
     }
   });
-
-  //$('#searchkey').attr('list', "data-" + $('#searchtype').val());
-
-  //$('#searchtype').on('change', function() {
-  //  $('#searchkey').attr('list', "data-" + this.value);
-  //});
 
   $('#searchbutton').click(function () {
     var type = $("#searchtype").val();
