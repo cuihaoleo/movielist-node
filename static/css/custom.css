@@ -96,3 +96,10 @@
   margin-left: 0.5em;
   font-size: 80%;
 }
+
+.ui-autocomplete {
+  max-height: 50%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+

@@ -1,7 +1,11 @@
 var DBMOVIE_SUB = "http://movie.douban.com/subject/";
+
 var all_movies = [];
 var movie_data = [];
 var entry_per_page = 50;
+
+var autocomp_name = [];
+var autocomp_genre = [];
 
 function humanFileSize (bytes) {
     var thresh = 1024;
@@ -192,17 +196,17 @@ $(document).ready(function() {
   $.getJSON("/list.json", function (data) {
     movie_data = data;
 
-    var genres = [];
     $.each(data, function (key, val) {
       // autocomplete
       val.title.forEach( function (e) {
-        $('#data-title').append($("<option>").attr('value',e));
+        if (autocomp_name.indexOf(e) == -1) {
+          autocomp_name.push(e);
+        }
       });
 
       val.genres.forEach(function (e) {
-        if (genres.indexOf(e) == -1) {
-          $('#data-genre').append("<option>"+e+"</option>");
-          genres.push(e);
+        if (autocomp_genre.indexOf(e) == -1) {
+          autocomp_genre.push(e);
         }
       })
 
@@ -212,11 +216,27 @@ $(document).ready(function() {
     setupPages();
   });
 
-  $('#searchkey').attr('list', "data-" + $('#searchtype').val());
+  $('#searchkey').autocomplete ({
+    source: function (request, response) {
+      var key = request.term.toLowerCase();
+      function key_in_str (s) {
+        return s.toLowerCase().indexOf(key) != -1;
+      }
 
-  $('#searchtype').on('change', function() {
-    $('#searchkey').attr('list', "data-" + this.value);
+      if ($('#searchtype').val() == "title") {
+        response($.grep(autocomp_name, key_in_str));
+      }
+      else if ($('#searchtype').val() == "genre") {
+        response($.grep(autocomp_genre, key_in_str));
+      }
+    }
   });
+
+  //$('#searchkey').attr('list', "data-" + $('#searchtype').val());
+
+  //$('#searchtype').on('change', function() {
+  //  $('#searchkey').attr('list', "data-" + this.value);
+  //});
 
   $('#searchbutton').click(function () {
     var type = $("#searchtype").val();
