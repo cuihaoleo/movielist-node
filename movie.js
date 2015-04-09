@@ -13,7 +13,7 @@ var last_ret = new Object();
 
 
 function fillMovieInfo (obj, minfo) {
-    obj.year = minfo.year;
+    obj.year = Number(minfo.year);
     obj.title = [minfo.title, minfo.original_title];
     obj.rating = minfo.rating.average;
     obj.genres = minfo.genres;

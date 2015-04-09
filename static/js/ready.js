@@ -38,7 +38,9 @@ function addRow (key) {
   }
 
   // year
-  this_row.append($("<td>").addClass("mv-year").text(val.year));
+  this_row.append($("<td>").addClass("mv-year").text(
+    val.year > 1800 ? val.year : ""
+  ));
 
   // rating
   var rating_col = $("<td>");
