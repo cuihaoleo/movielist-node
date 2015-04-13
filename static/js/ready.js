@@ -80,12 +80,22 @@ function addRow (key) {
       files_col.append(fp_div);
     }
 
-    var size_span = $("<span>").addClass("file-size");
-    var time_span = $("<span>").addClass("file-time");
+    var finfo_span = $("<span>").addClass("file-info");
+    fp_div.append(finfo_span);
+
+    if (val.files[i].sub) {
+      var sub_span = $("<span>").addClass("file-info-sub");
+      sub_span.text(val.files[i].sub ? val.files[i].sub + ' 字幕' : '');
+      finfo_span.append(sub_span);
+    }
+
+    var size_span = $("<span>").addClass("file-info-sub");
     size_span.text(humanFileSize(val.files[i].size));
+    finfo_span.append(size_span)
+
+    var time_span = $("<span>");
     time_span.text(val.files[i].time);
-    fp_div.append(size_span);
-    fp_div.append(time_span);
+    finfo_span.append(time_span)
 
     cd.pop();
   }

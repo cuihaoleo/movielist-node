@@ -76,7 +76,12 @@ function http_get_list_json (req, res) {
                     return;
                 }
                 
-                var fi = {path: fpath, size: finfo.size, time: finfo.time};
+                var fi = {
+                    path: fpath,
+                    size: finfo.size,
+                    time: finfo.time,
+                    sub: finfo.sub
+                };
 
                 if (ret[mid]) {
                     ret[mid].files.push(fi);

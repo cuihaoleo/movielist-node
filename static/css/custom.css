@@ -53,22 +53,22 @@
   font-family: monospace;
 }
 
-.file-size, .file-time{
+.file-info {
   word-break: keep-all;
   white-space: nowrap;
   font-size: 75%;
   color: #888;
 }
 
-.file-size:before {
-  content: " (";
-}
-
-.file-size:after {
+.file-info-sub:after {
   content: ", ";
 }
 
-.file-time:after {
+.file-info:before {
+  content: " (";
+}
+
+.file-info:after {
   content: ")";
 }
 
