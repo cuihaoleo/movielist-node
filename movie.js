@@ -91,6 +91,11 @@ function http_get_list_json (req, res) {
                     ret[mid].files = [fi];
                 }
 
+
+                douban_movie.getTTID(mid, function (err, mid) {
+                    ; //pass
+                });
+
                 release();
             });
         });
