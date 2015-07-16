@@ -1,4 +1,5 @@
 var douban_movie = require("./lib/douban_movie.js");
+var omdb_movie = require("./lib/omdb_movie.js");
 var parse_file_list = require("./lib/parse_file_list");
 var ReadWriteLock = require('rwlock');
 var fs = require('fs');
@@ -15,7 +16,7 @@ var last_ret = new Object();
 function fillMovieInfo (obj, minfo) {
     obj.year = Number(minfo.year);
     obj.title = [minfo.title, minfo.original_title];
-    obj.rating = minfo.rating.average;
+    //obj.rating = minfo.rating.average;
     obj.genres = minfo.genres;
     obj.aka = minfo.aka;
 }
@@ -92,11 +93,13 @@ function http_get_list_json (req, res) {
                 }
 
 
-                douban_movie.getTTID(mid, function (err, mid) {
-                    ; //pass
+                douban_movie.getTTID(mid, function (err, ttid) {
+                    if (!err) {
+                        ret[mid].ttid = ttid;
+                    }
+                    release();
                 });
 
-                release();
             });
         });
     });
@@ -129,17 +132,46 @@ function http_get_list_json (req, res) {
                 })(mid) }}}
             }
         }
-
-        cb_lock.writeLock("L2", function (release) {
-            res && res.json(ret);
-            var end_time = (new Date()).getTime();
-            console.log("Response time:", (end_time - start_time)/1000);
-            last_ret = ret;
-            release();
-        });
-
         release();
     });
+
+    cb_lock.readLock("L1", function (release1) {
+    cb_lock.writeLock("L2", function (release2) {
+        for (var prop in ret) {
+            if (ret.hasOwnProperty(prop) && !last_ret[prop] 
+                                         && ret[prop].ttid) {
+                var ttid = ret[prop].ttid;
+
+                {{{ ( function (obj) {
+                cb_lock.readLock("L3", function (release) {
+                    omdb_movie.
+                     getMovieInfoFromCache(obj.ttid, function (err, reply) {
+                        if (!err) {
+                            obj.rating = Number(reply.imdbRating);
+                        }
+                        release();
+                    });
+                });
+                })(ret[prop]) }}}
+            }
+        }
+
+        release1();
+        release2();
+    });});
+
+
+    cb_lock.readLock("L1", function (release1) {
+    cb_lock.readLock("L2", function (release2) {
+    cb_lock.writeLock("L3", function (release3) {
+        res && res.json(ret);
+        var end_time = (new Date()).getTime();
+        console.log("Response time:", (end_time - start_time)/1000);
+        last_ret = ret;
+        release1();
+        release2();
+        release3();
+    });});});
 };
 
 

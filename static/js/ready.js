@@ -44,8 +44,9 @@ function addRow (key) {
 
   // rating
   var rating_col = $("<td>");
-  var rating_div = $("<div>").addClass("mv-rating").text(val.rating.toFixed(1));
-  rating_col.append(rating_div);
+  var rating_a = $("<a>").addClass("mv-rating").text(val.rating ? val.rating.toFixed(1) : "");
+  rating_a.attr('href', "http://www.imdb.com/title/" + val.ttid);
+  rating_col.append(rating_a);
   this_row.append(rating_col);
 
   // genres

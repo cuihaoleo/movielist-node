@@ -33,6 +33,7 @@
 .mv-rating {
   font-size: 140%;
   font-weight: bold;
+  color: inherit;
 }
 
 .mv-year {
