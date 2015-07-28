@@ -7,6 +7,14 @@ var entry_per_page = 50;
 var autocomp_name = [];
 var autocomp_genre = [];
 
+
+function getParameterByName(name) {
+  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+      results = regex.exec(location.search);
+  return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
 function humanFileSize (bytes) {
     var thresh = 1024;
     if (bytes < thresh) return bytes + ' B';
@@ -226,6 +234,14 @@ $(document).ready(function() {
     });
 
     setupPages();
+
+    var stype = getParameterByName("type");
+    var skey = getParameterByName("type");
+    if (stype && skey) {
+      $("#searchtype").val(getParameterByName("type"));
+      $("#searchkey").val(getParameterByName("key"));
+      $("#searchbutton").click();
+    }
   });
 
   $('#searchkey').autocomplete ({
@@ -258,6 +274,12 @@ $(document).ready(function() {
       var re = new RegExp(keyword, "i");
       filterMovieByPath(re);
     }
+
+    window.history.pushState(
+        null, null,
+        window.location.pathname +
+            "?type=" + $("#searchtype").val() +
+            "&key=" + $("#searchkey").val());
   });
 
   $('#searchkey').keypress(function(event) {
@@ -272,6 +294,9 @@ $(document).ready(function() {
   $('#resetbutton').click(function () {
     $("#searchkey").val("");
     showAllMovies();
+    window.history.pushState(
+        null, null,
+        window.location.pathname);
   });
 
   $('body').on('click', '.unsorted', function() {
@@ -305,4 +330,5 @@ $(document).ready(function() {
   $('#last-page').click(function () {changePage($("#movie-table").data("maxpage")-1)});
   $('#prev-page').click(function () {changePage($("#movie-table").data("page")-1)});
   $('#next-page').click(function () {changePage($("#movie-table").data("page")+1)});
+
 });
