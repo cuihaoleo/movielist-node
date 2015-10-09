@@ -1,7 +1,8 @@
+"use strict";
+
 var douban_movie = require("./lib/douban_movie.js");
 var omdb_movie = require("./lib/omdb_movie.js");
 var parse_file_list = require("./lib/parse_file_list");
-var ReadWriteLock = require('rwlock');
 var fs = require('fs');
 
 var compression = require("compression");
@@ -63,115 +64,114 @@ function loadFileList (callback) {
 function http_get_list_json (req, res) {
     var start_time = (new Date()).getTime();
     var ret = new Object();
-    var cb_lock = new ReadWriteLock();
 
     process.nextTick(loadFileList);
 
-    filelist.forEach(function (elem) {
-        cb_lock.readLock ("L1", function (release) {
-            var fpath = elem[0], finfo = elem[1];
+    // search and get MovieID from Douban
+    function task_group1() {
+        var futures = []
 
-            parse_file_list.getMID(fpath, function (err, mid) {
-                if (err || !mid || mid == -1) {
-                    release();
-                    return;
-                }
-                
-                var fi = {
-                    path: fpath,
-                    size: finfo.size,
-                    time: finfo.time,
-                    sub: finfo.sub
-                };
+        for (let elem of filelist) {
+            futures.push(new Promise(function(resolve, reject) {
+                var fpath = elem[0], finfo = elem[1];
 
-                if (ret[mid]) {
-                    ret[mid].files.push(fi);
-                }
-                else {
-                    ret[mid] = new Object();
-                    ret[mid].files = [fi];
-                }
-
-
-                douban_movie.getTTID(mid, function (err, ttid) {
-                    if (!err) {
-                        ret[mid].ttid = ttid;
+                parse_file_list.getMID(fpath, function (err, mid) {
+                    if (err || !(mid > 0)) {
+                        resolve();
+                        return;
                     }
-                    release();
+
+                    var fi = {
+                        path: fpath,
+                        size: finfo.size,
+                        time: finfo.time,
+                        sub: finfo.sub
+                    };
+
+                    if (ret[mid]) {
+                        ret[mid].files.push(fi);
+                    }
+                    else {
+                        ret[mid] = new Object();
+                        ret[mid].files = [fi];
+                    }
+
+
+                    douban_movie.getTTID(mid, function (err, ttid) {
+                        if (!err) {
+                            ret[mid].ttid = ttid;
+                        }
+                        resolve(mid);
+                    });
                 });
+            }));
+        }
 
-            });
-        });
-    });
+        return futures;
+    }
 
-    cb_lock.writeLock("L1", function (release) {
-        for (var prop in ret) {
-            if (ret.hasOwnProperty(prop)) {
-                var mid = Number(prop);
+    // get movie info from Douban (and get its IMDB ID)
+    function task_group2() {
+        var futures = [];
 
-                if (last_ret[prop]) {
-                    var fp = ret[prop].files;
-                    ret[prop] = last_ret[prop];
-                    ret[prop].files = fp;
-                    continue;
-                }
+        for (let prop of Object.getOwnPropertyNames(ret)) {
+            var mid = Number(prop);
 
-                {{{ ( function (mid) {
-                cb_lock.readLock("L2", function (release) {
+            if (last_ret[prop]) {
+                var fp = ret[prop].files;
+                ret[prop] = last_ret[prop];
+                ret[prop].files = fp;
+                continue;
+            }
+
+            futures.push((function (mid) {
+                return new Promise(function (resolve, reject) {
                     douban_movie.
-                     getMovieInfoFromCache(mid, function (err, reply) {
+                    getMovieInfoFromCache(mid, function (err, reply) {
                         if (err) {
                             delete ret[mid.toString()];
                         }
                         else{
                             fillMovieInfo(ret[mid.toString()], reply);
                         }
-                        release();
+                        resolve();
                     });
                 });
-                })(mid) }}}
-            }
+            })(mid));
         }
-        release();
-    });
 
-    cb_lock.readLock("L1", function (release1) {
-    cb_lock.writeLock("L2", function (release2) {
-        for (var prop in ret) {
-            if (ret.hasOwnProperty(prop) && !last_ret[prop] 
-                                         && ret[prop].ttid) {
-                var ttid = ret[prop].ttid;
+        return futures;
+    }
 
-                {{{ ( function (obj) {
-                cb_lock.readLock("L3", function (release) {
+    // get movie info from OMDB
+    function task_group3() {
+        var futures = [];
+        for (let prop of Object.getOwnPropertyNames(ret)) {
+            var ttid = ret[prop].ttid;
+
+            futures.push((function (obj) {
+                return new Promise(function (resolve, reject) {
                     omdb_movie.
-                     getMovieInfoFromCache(obj.ttid, function (err, reply) {
-                        if (!err) {
-                            obj.rating = Number(reply.imdbRating);
-                        }
-                        release();
+                    getMovieInfoFromCache(obj.ttid, function (err, reply) {
+                        !err && (obj.rating = Number(reply.imdbRating));
+                        resolve();
                     });
                 });
-                })(ret[prop]) }}}
-            }
+            })(ret[prop]));
         }
+        return futures;
+    }
 
-        release1();
-        release2();
-    });});
-
-
-    cb_lock.readLock("L1", function (release1) {
-    cb_lock.readLock("L2", function (release2) {
-    cb_lock.writeLock("L3", function (release3) {
+    Promise.resolve()
+    .then(() => Promise.all(task_group1()))
+    .then(() => Promise.all(task_group2()))
+    .then(() => Promise.all(task_group3()))
+    .then(function () {
         res && res.json(ret);
         var end_time = (new Date()).getTime();
         console.log("Response time:", (end_time - start_time)/1000);
         last_ret = ret;
-        release1();
-        release2();
-        release3();
-    });});});
+    });
 };
 
 
