@@ -9,11 +9,6 @@ var compression = require("compression");
 var express = require('express');
 var app = express();
 
-var filelist_mtime = new Date(0);
-var filelist = [];
-var last_ret = new Object();
-
-
 function fillMovieInfo (obj, minfo) {
     obj.year = Number(minfo.year);
     obj.title = [minfo.title, minfo.original_title];
@@ -23,154 +18,154 @@ function fillMovieInfo (obj, minfo) {
 }
 
 
-function loadFileList (callback) {
-    fs.stat("list.json", function (err, stats) {
-        if (err) {
-            console.error("Cannot read list.json !");
-            throw err;
-        }
+function MovieFileListLoader() {
+    this.movie_files = [];
+    this.mtime = new Date(0);
+}
 
-        if (stats.mtime - filelist_mtime == 0) {
+MovieFileListLoader.prototype.load_json = function (path, callback) {
+    var that = this;
+    fs.stat(path, function (err, stats) {
+        if (err) {
+            console.error("Cannot open list.json!");
+            callback(err);
             return;
         }
 
-        try {
-            var li = require('./list.json');
-        } catch (e) {
-            console.error("Cannot read list.json!");
-            throw e;
+        if (stats.mtime - that.mtime == 0) {
+            callback && callback(null, that.movie_files, false);
         }
 
-        var tmp = [];
-        parse_file_list.getMovieFiles(li, [], function (err, p, info) {
-            if (err) {
-                throw err;
-            }
+        try {
+            var list = require('./list.json');
+        }
+        catch (e) {
+            console.error("Cannot open list.json!");
+            callback(e);
+            return;
+        }
 
-            tmp.push([p, info]);
+        var movie_files = [], success = true;
+        parse_file_list.getMovieFiles(list, [], function (err, p, info) {
+            if (err) {
+                console.error("Failed to parse list.json!");
+                callback(err);
+                success = false;
+            }
+            else {
+                movie_files.push([p, info]);
+            }
         });
 
-        console.log("list.json reloaded!");
-        filelist_mtime = stats.mtime;
-        filelist = tmp;
-        last_ret = new Object();
-
-        callback && callback();
+        if (success) {
+            that.mtime = stats.mtime;
+            that.movie_files = movie_files
+            callback && callback(null, movie_files, true);
+            console.log("list.json reloaded!");
+        }
     });
 }
 
+var file_list_loader = new MovieFileListLoader();
+var last_reply = new Object();
 
-        
 function http_get_list_json (req, res) {
     var start_time = (new Date()).getTime();
-    var ret = new Object();
 
-    process.nextTick(loadFileList);
+    file_list_loader.load_json("list.json", function (err, list, updated) {
+        var futures = [];
+        var reply = new Object();
 
-    // search and get MovieID from Douban
-    function task_group1() {
-        var futures = []
+        if (updated) {
+            last_reply = new Object();
+        }
 
-        for (let elem of filelist) {
-            futures.push(new Promise(function(resolve, reject) {
-                var fpath = elem[0], finfo = elem[1];
+        for (let elem of list) {
+            var fpath = elem[0], finfo = elem[1];
 
+            var promise = new Promise(function (global_resolve) {
                 parse_file_list.getMID(fpath, function (err, mid) {
                     if (err || !(mid > 0)) {
-                        resolve();
+                        global_resolve();
                         return;
                     }
 
-                    var fi = {
+                    if (!reply.hasOwnProperty(mid)) {
+                        reply[mid] = last_reply.hasOwnProperty(mid) ?
+                        last_reply[mid] : new Object();
+                        reply[mid].files = [];
+
+                        var promise = Promise.resolve(reply[mid])
+                        .then(function (r) {
+                            return new Promise(function (resolve, reject) {
+                                if (!r.title) {
+                                    douban_movie.getMovieInfoFromCache(mid, function (err, info) {
+                                        if (!err && info) {
+                                            r.year = Number(info.year);
+                                            r.title = [info.title, info.original_title];
+                                            // r.rating = info.rating.average;
+                                            r.genres = info.genres;
+                                            r.aka = info.aka;
+                                        }
+                                        resolve(r);
+                                    });
+                                }
+                                else {
+                                    resolve(r);
+                                }
+                            });
+                        })
+                        .then(function (r) {
+                            return new Promise(function (resolve, reject) {
+                                if (!r.ttid) {
+                                    douban_movie.getTTID(mid, function (err, ttid) {
+                                        if (!err && ttid) {
+                                            r.ttid = ttid;
+                                        }
+                                        resolve(r);
+                                    });
+                                }
+                                else {
+                                    resolve(r);
+                                }
+                            });
+                        })
+                        .then(function (r) {
+                            return new Promise(function (resolve, reject) {
+                                if (!r.rating && r.ttid) {
+                                  omdb_movie.getMovieInfoFromCache(r.ttid, function (err, info) {
+                                      !err && (r.rating = Number(info.imdbRating));
+                                      resolve(r);
+                                  });
+                                }
+                                else {
+                                    resolve(r);
+                                }
+                            });
+                        })
+                        .then(function (r) {
+                            global_resolve();
+                        });
+                    }
+
+                    reply[mid].files.push({
                         path: fpath,
                         size: finfo.size,
                         time: finfo.time,
-                        sub: finfo.sub
-                    };
-
-                    if (ret[mid]) {
-                        ret[mid].files.push(fi);
-                    }
-                    else {
-                        ret[mid] = new Object();
-                        ret[mid].files = [fi];
-                    }
-
-
-                    douban_movie.getTTID(mid, function (err, ttid) {
-                        if (!err) {
-                            ret[mid].ttid = ttid;
-                        }
-                        resolve(mid);
+                        sub: finfo.sub,
                     });
                 });
-            }));
+            });
+
+            futures.push(promise);
         }
 
-        return futures;
-    }
-
-    // get movie info from Douban (and get its IMDB ID)
-    function task_group2() {
-        var futures = [];
-
-        for (let prop of Object.getOwnPropertyNames(ret)) {
-            var mid = Number(prop);
-
-            if (last_ret[prop]) {
-                var fp = ret[prop].files;
-                ret[prop] = last_ret[prop];
-                ret[prop].files = fp;
-                continue;
-            }
-
-            futures.push((function (mid) {
-                return new Promise(function (resolve, reject) {
-                    douban_movie.
-                    getMovieInfoFromCache(mid, function (err, reply) {
-                        if (err) {
-                            delete ret[mid.toString()];
-                        }
-                        else{
-                            fillMovieInfo(ret[mid.toString()], reply);
-                        }
-                        resolve();
-                    });
-                });
-            })(mid));
-        }
-
-        return futures;
-    }
-
-    // get movie info from OMDB
-    function task_group3() {
-        var futures = [];
-        for (let prop of Object.getOwnPropertyNames(ret)) {
-            var ttid = ret[prop].ttid;
-
-            futures.push((function (obj) {
-                return new Promise(function (resolve, reject) {
-                    omdb_movie.
-                    getMovieInfoFromCache(obj.ttid, function (err, reply) {
-                        !err && (obj.rating = Number(reply.imdbRating));
-                        resolve();
-                    });
-                });
-            })(ret[prop]));
-        }
-        return futures;
-    }
-
-    Promise.resolve()
-    .then(() => Promise.all(task_group1()))
-    .then(() => Promise.all(task_group2()))
-    .then(() => Promise.all(task_group3()))
-    .then(function () {
-        res && res.json(ret);
-        var end_time = (new Date()).getTime();
-        console.log("Response time:", (end_time - start_time)/1000);
-        last_ret = ret;
+        Promise.all(futures).then(function () {
+            res && res.json(reply);
+            var end_time = (new Date()).getTime();
+            console.log("Response time:", (end_time - start_time)/1000);
+            last_reply = reply;
+        });
     });
 };
 
@@ -181,16 +176,15 @@ app.get('/list.json', http_get_list_json);
 
 
 if (require.main === module) {
-
     var port = Number(process.argv[2]);
 
     if (!(port >= 0 && port < 65536)) {
         port = 3000;
     }
 
-    loadFileList(http_get_list_json);
+    file_list_loader.load_json("list.json");
+    http_get_list_json();
 
     console.log("Listen at port " + port);
     app.listen(port);
 }
-
