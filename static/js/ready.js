@@ -7,7 +7,6 @@ var entry_per_page = 50;
 var autocomp_name = [];
 var autocomp_genre = [];
 
-
 function getParameterByName(name) {
   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -72,8 +71,26 @@ function addRow (key) {
   this_row.append(genres_col);
 
   // file info
-  var files_col = $("<td>");
+  var files_button_col = $("<td>");
+  this_row.append(files_button_col);
+  var file_info_show = $("<span>");
+  file_info_show.data("parent", key);
+  files_button_col.append(file_info_show);
+  file_info_show.click(function (e) {
+      e.preventDefault();
+      var key = $(this).data('parent');
+      console.log(key);
+      $("#f" + key).toggle();
+  });
+
+  var files_row = $("<tr>").attr('id', 'f'+key).addClass("file-info-row");
+  $("#movie-table-body").append(files_row);
+  files_row.append($("<td>文件信息</td>"));
+  var files_col = $("<td colspan=\"4\"></td>");
+  files_row.append(files_col);
+
   var cd = [];
+  var total_size = 0;
   for (var i=0; i<val.files.length; i++) {
     var cpath = val.files[i].path;
     while (cd.length &&
@@ -100,15 +117,19 @@ function addRow (key) {
 
     var size_span = $("<span>").addClass("file-info-sub");
     size_span.text(humanFileSize(val.files[i].size));
-    finfo_span.append(size_span)
+    total_size += val.files[i].size;
+    finfo_span.append(size_span);
 
     var time_span = $("<span>");
     time_span.text(val.files[i].time);
-    finfo_span.append(time_span)
+    finfo_span.append(time_span);
 
     cd.pop();
   }
-  this_row.append(files_col);
+
+  var file_num = $("<span>").addClass("file-num-span").text("" + val.files.length);
+  var file_size = $("<span>").addClass("file-size-span").text(humanFileSize(total_size));
+  file_info_show.append(file_num).append(file_size);
 }
 
 function changePage (page) {
@@ -204,7 +225,9 @@ function sortMovieBy (sortby, reverse) {
     });
   } else {
     all_movies.sort(function (a, b) {
-      return movie_data[a][sortby] - movie_data[b][sortby];
+      var na = movie_data[a][sortby] ? Number(movie_data[a][sortby]) : 0;
+      var nb = movie_data[b][sortby] ? Number(movie_data[b][sortby]) : 0;
+      return na-nb;
     });
   }
 
