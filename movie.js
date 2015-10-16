@@ -34,6 +34,7 @@ MovieFileListLoader.prototype.load_json = function (path, callback) {
 
         if (stats.mtime - that.mtime == 0) {
             callback && callback(null, that.movie_files, false);
+            return;
         }
 
         try {
@@ -81,18 +82,20 @@ function http_get_list_json (req, res) {
         }
 
         for (let elem of list) {
-            var fpath = elem[0], finfo = elem[1];
-
             var promise = new Promise(function (global_resolve) {
+                var fpath = elem[0], finfo = elem[1];
                 parse_file_list.getMID(fpath, function (err, mid) {
                     if (err || !(mid > 0)) {
                         global_resolve();
                         return;
                     }
 
-                    if (!reply.hasOwnProperty(mid)) {
-                        reply[mid] = last_reply.hasOwnProperty(mid) ?
-                        last_reply[mid] : new Object();
+                    if (reply.hasOwnProperty(mid)) {
+                        global_resolve();
+                    }
+                    else
+                    {
+                        reply[mid] = last_reply.hasOwnProperty(mid) ? last_reply[mid] : new Object();
                         reply[mid].files = [];
 
                         var promise = Promise.resolve(reply[mid])
@@ -161,6 +164,11 @@ function http_get_list_json (req, res) {
         }
 
         Promise.all(futures).then(function () {
+            for (let i in reply) {
+                if (!reply[i].title) {
+                    delete reply[i];
+                }
+            }
             res && res.json(reply);
             var end_time = (new Date()).getTime();
             console.log("Response time:", (end_time - start_time)/1000);
