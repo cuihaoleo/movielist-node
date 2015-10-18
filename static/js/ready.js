@@ -70,9 +70,9 @@ function addRow (key) {
             class: "label label-primary ml-genre",
             text: genre,
         }).click(function () {
-            $("#searchtype").val("genre");
-                $("#searchkey").val(genre);
-            $('#searchbutton').click();
+            $("#search-type").val("genre");
+                $("#search-key").val(genre);
+            $('#search-btn').click();
         }).appendTo($genres_col);
 
     // file info
@@ -256,7 +256,7 @@ $(document).ready(function() {
         $('#search-key').keypress(function(event) {
             if (event.keyCode == 13) {
                 event.preventDefault();
-                $('#searchbutton').click();
+                $('#search-btn').click();
                 return false;
             }
             else
@@ -266,9 +266,9 @@ $(document).ready(function() {
                 var key = request.term.toLowerCase();
                 var src;
 
-                if ($('#searchtype').val() == "title")
+                if ($('#search-type').val() == "title")
                     src = autocomp.name;
-                else if ($('#searchtype').val() == "genre")
+                else if ($('#search-type').val() == "genre")
                     src = autocomp.genre;
                 else
                     return;
@@ -330,7 +330,7 @@ function search() {
 }
 
 function reset() {
-    $("#searchkey").val("");
+    $("#search-key").val("");
     showAllMovies();
     window.history.pushState(null, null, window.location.pathname);
 }
