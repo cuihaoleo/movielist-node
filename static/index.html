@@ -18,23 +18,23 @@
     <div class="row"><br /></row>
 
     <div class="row">
-      <div class="col-xs-6">
+      <div class="col-xs-8">
         <form class="form-inline" role="form" id="searchform">
           <input type="text" autocomplete="off"
-                 class="form-control" placeholder="关键词" id="searchkey">
+                 class="form-control" placeholder="关键词" id="search-key">
 
-          <select class="form-control" id="searchtype" name="type">
+          <select class="form-control" id="search-type" name="type">
             <option value="title">电影名称</option>
             <option value="genre">电影类型</option>
             <option value="path">文件路径（正则）</option>
           </select>
 
-          <button type="button" class="btn btn-default" id="searchbutton">搜索</button>
-          <button type="button" class="btn btn-default" id="resetbutton">清空</button>
+          <button type="button" class="btn btn-default" id="search-btn" onclick="search()">搜索</button>
+          <button type="button" class="btn btn-default" id="reset-btn" onclick="reset()">清空</button>
         </form>
       </div>
 
-      <div class="col-xs-6">
+      <div class="col-xs-4">
         <div id="page-select">
           <div class="btn-group">
             <button type="button" class="btn btn-default" id="first-page">&laquo;</button>
@@ -57,9 +57,9 @@
     <div class="row"><br /></row>
 
     <div class="row">
-      <table id="movie-table" class="table">
+      <table id="ml-table" class="table">
         <thead>
-          <tr id="table-title">
+          <tr id="ml-table-header">
             <th style="width: 30%" class="unsorted" data-sortby="title">电影名称</th>
             <th style="width: 15%" class="unsorted" data-sortby="year">上映时间</th>
             <th style="width: 15%" class="unsorted" data-sortby="rating">IMDB评分</th>
@@ -67,7 +67,7 @@
             <th style="width: 15%">文件信息</th>
           </tr>
         </thead>
-        <tbody id="movie-table-body">
+        <tbody id="ml-table-body">
         </tbody>
       </table>
     </div>

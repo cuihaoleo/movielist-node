@@ -1,106 +1,5 @@
-#table-title {
-  font-size: 120%;
-}
-
-.zh-title {
-  font-weight: bold;
-  font-family: serif;
-  font-size: 120%;
-}
-
-.orig-title{
-  margin-left: 10px;
-  font-family: sans-serif;
-  font-size: 80%;
-}
-
-#searchform {
-  float: left;
-}
-
-#page-select {
-  float: right;
-  margin-left: 1em;
-}
-
-.mv-genre {
-  display: inline-block;
-  font-size: 120%;
-  margin-left: 3px;
-  margin-top: 2px;
-}
-
-.mv-rating {
-  font-size: 140%;
-  font-weight: bold;
-  color: inherit;
-}
-
-.mv-year {
-  font-size: 140%;
-}
-
-.header {
-  margin-top: 5px;
-}
-
-.plevel:before {
-  content: "• "
-}
-
-.plevel {
-  word-break: break-all;
-  font-size: 75%;
-  font-family: monospace;
-}
-
-.file-info {
-  word-break: keep-all;
-  white-space: nowrap;
-  font-size: 75%;
-  color: #888;
-}
-
-.file-info-row {
-    display: none;
-}
-
-.file-info-sub:after {
-  content: ", ";
-}
-
-.file-info:before {
-  content: " (";
-}
-
-.file-info:after {
-  content: ")";
-}
-
-.file-num-span {
-  font-weight: bold;
-}
-
-.file-num-span:after {
-  font-weight: normal;
-  content: " 个文件";
-}
-
-.file-num-span {
-    cursor: pointer;
-}
-
-.file-size-span {
-    font-size: 75%;
-    color: #888;
-}
-
-.file-size-span:before {
-  content: " (";
-}
-
-.file-size-span:after {
-  content: ")";
+table {
+    empty-cells: show;
 }
 
 .unsorted,.sortdown,.sortup {
@@ -134,6 +33,94 @@
   overflow-x: hidden;
 }
 
-table {
-    empty-cells: show;
+#search-form {
+  float: left;
+}
+
+#page-select {
+  float: right;
+  margin-left: 1em;
+}
+
+#ml-table-header {
+  font-size: 120%;
+}
+
+.ml-title-zh {
+  font-weight: bold;
+  font-family: serif;
+  font-size: 120%;
+}
+
+.ml-title-orig {
+  margin-left: 10px;
+  font-family: sans-serif;
+  font-size: 80%;
+}
+
+.ml-year {
+  font-size: 140%;
+}
+
+.ml-rating {
+  font-size: 140%;
+  font-weight: bold;
+  color: inherit;
+}
+
+.ml-genre {
+  display: inline-block;
+  font-size: 110%;
+  margin-left: 3px;
+  margin-top: 2px;
+}
+
+.ml-filelist {
+    display: none;
+}
+
+.ml-filelist-dir:before {
+  content: "• "
+}
+
+.ml-filelist-dir {
+  word-break: break-all;
+  font-size: 75%;
+  font-family: monospace;
+}
+
+.ml-filelist-info {
+  word-break: keep-all;
+  white-space: nowrap;
+  font-size: 75%;
+  color: #888;
+}
+
+.ml-filelist-info:before {
+  content: " (";
+}
+
+.ml-filelist-info:after {
+  content: ")";
+}
+
+.ml-file {
+    cursor: pointer;
+}
+
+.ml-file-number {
+  font-weight: bold;
+}
+
+.ml-file-size {
+    font-size: 75%;
+    color: #888;
+}
+
+.ml-file-size:before {
+    content: " (";
+}
+
+.ml-file-size:after {
+    content: ")";
 }

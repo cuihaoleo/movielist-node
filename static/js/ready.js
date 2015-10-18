@@ -3,15 +3,16 @@ var DBMOVIE_SUB = "http://movie.douban.com/subject/";
 var all_movies = [];
 var movie_data = [];
 var entry_per_page = 50;
-
-var autocomp_name = [];
-var autocomp_genre = [];
+var autocomp = {
+    name: [],
+    genre: [],
+};
 
 function getParameterByName(name) {
-  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-      results = regex.exec(location.search);
-  return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
 function humanFileSize (bytes) {
@@ -27,113 +28,110 @@ function humanFileSize (bytes) {
 };
 
 function addRow (key) {
-  var val = movie_data[key];
-  var this_row = $("<tr>").attr('id', 'm'+key);
-  $("#movie-table-body").append(this_row);
+    var info = movie_data[key];
 
-  // movie title
-  var name_col = $("<td>");
-  this_row.append(name_col);
+    var $table = $("#ml-table-body");
+    var $row = $("<tr>", {
+        id: 'm' + key,
+    }).appendTo($table);
 
-  var zh_name_a = $("<a>").addClass("zh-title").attr(
-                  'href', DBMOVIE_SUB + key).text(val.title[0]);
-  name_col.append(zh_name_a);
+    // name column
+    var $name_col = $("<td>").appendTo($row);
+    var $zh_name = $("<a>", {
+        class: "ml-title-zh",
+        href: DBMOVIE_SUB + key,
+        text: info.title[0],
+    }).appendTo($name_col);
 
-  if (val.title[0] != val.title[1]) {
-    var orig_name_div = $("<div>").addClass("orig-title").text(val.title[1]);
-    name_col.append(orig_name_div);
-  }
+    if (info.title[0] != info.title[1])
+        var $orig_name = $("<div>", {
+            class: "ml-title-orig",
+            text: info.title[1],
+        }).appendTo($name_col);
 
-  // year
-  this_row.append($("<td>").addClass("mv-year").text(
-    val.year > 1800 ? val.year : ""
-  ));
+    // year column
+    $("<td>", {
+        class: "ml-year",
+        text: info.year > 1800 ? info.year : "",
+    }).appendTo($row);
 
-  // rating
-  var rating_col = $("<td>");
-  var rating_a = $("<a>").addClass("mv-rating").text(val.rating ? val.rating.toFixed(1) : "");
-  rating_a.attr('href', "http://www.imdb.com/title/" + val.ttid);
-  rating_col.append(rating_a);
-  this_row.append(rating_col);
+    // IMDB rating column
+    var $rating_col = $("<td>").appendTo($row);
+    var $rating = $("<a>", {
+        class: "ml-rating",
+        text: info.rating ? info.rating.toFixed(1) : "",
+        href: "http://www.imdb.com/title/" + info.ttid,
+    }).appendTo($rating_col);
 
-  // genres
-  var genres_col = $("<td>");
-  val.genres.forEach(function (genre) {
-    var genre_span = $("<a>").addClass("label label-primary mv-genre");
-    genre_span.text(genre);
-    genres_col.append(genre_span);
-    genre_span.click(function () {
-      $("#searchtype").val("genre");
-      $("#searchkey").val(genre);
-      $('#searchbutton').click();
-    });
-  });
-  this_row.append(genres_col);
+    // genres column
+    var $genres_col = $("<td>").appendTo($row);
+    for (var genre of info.genres)
+        $("<a>", {
+            class: "label label-primary ml-genre",
+            text: genre,
+        }).click(function () {
+            $("#searchtype").val("genre");
+                $("#searchkey").val(genre);
+            $('#searchbutton').click();
+        }).appendTo($genres_col);
 
-  // file info
-  var files_button_col = $("<td>");
-  this_row.append(files_button_col);
-  var file_info_show = $("<span>");
-  file_info_show.data("parent", key);
-  files_button_col.append(file_info_show);
-  file_info_show.click(function (e) {
-      e.preventDefault();
-      var key = $(this).data('parent');
-      console.log(key);
-      $("#f" + key).toggle();
-  });
+    // file info
+    var $file_col = $("<td>").appendTo($row);
+    var $file_brief = $("<span>", {
+        class: "ml-file",
+        data: { parent: key },
+    }).click(function (e) {
+        e.preventDefault();
+        var key = $(this).data('parent');
+        $("#f" + key).toggle();
+    }).appendTo($file_col);
 
-  var files_row = $("<tr>").attr('id', 'f'+key).addClass("file-info-row");
-  $("#movie-table-body").append(files_row);
-  files_row.append($("<td>文件信息</td>"));
-  var files_col = $("<td colspan=\"4\"></td>");
-  files_row.append(files_col);
+    var $filelist_row = $("<tr>", {
+        class: "ml-filelist",
+        id: 'f' + key,
+    }).appendTo($table).append($("<td>文件信息</td>"));
 
-  var cd = [];
-  var total_size = 0;
-  for (var i=0; i<val.files.length; i++) {
-    var cpath = val.files[i].path;
-    while (cd.length &&
-          (cd.length > cpath.length || cd[cd.length-1] != cpath[cd.length-1])) {
-      cd.pop();
+    var $filelist_col = $("<td>", {
+        colspan: 4,
+    }).appendTo($filelist_row);
+
+    var total_size = 0;
+    var cd = [];
+    for (var finfo of info.files) {
+        var path = finfo.path;
+        while (cd.length > 0 && cd[cd.length-1] != path[cd.length-1])
+            cd.pop();
+
+        for (var j=cd.length; j<path.length; j++) {
+            var $dir = $("<div>")
+                .text(path[j])
+                .addClass("ml-filelist-dir")
+                .css("margin-left", j+"em")
+                .appendTo($filelist_col);
+            cd.push(path[j]);
+        }
+
+        var info_str = humanFileSize(finfo.size) + ", " + finfo.time
+                        + (finfo.sub ? (", " + finfo.sub) : "");
+        var $info = $("<span>")
+            .addClass("ml-filelist-info")
+            .text(info_str)
+            .appendTo($dir);
+
+        cd.pop();
+        total_size += finfo.size;
     }
 
-    for (var j=cd.length; j<cpath.length; j++)
-    {
-      cd.push(cpath[j]);
-      var fp_div = $("<div>").addClass("plevel").css("margin-left", j + "em");
-      fp_div.text(cpath[j]);
-      files_col.append(fp_div);
-    }
-
-    var finfo_span = $("<span>").addClass("file-info");
-    fp_div.append(finfo_span);
-
-    if (val.files[i].sub) {
-      var sub_span = $("<span>").addClass("file-info-sub");
-      sub_span.text(val.files[i].sub ? val.files[i].sub + ' 字幕' : '');
-      finfo_span.append(sub_span);
-    }
-
-    var size_span = $("<span>").addClass("file-info-sub");
-    size_span.text(humanFileSize(val.files[i].size));
-    total_size += val.files[i].size;
-    finfo_span.append(size_span);
-
-    var time_span = $("<span>");
-    time_span.text(val.files[i].time);
-    finfo_span.append(time_span);
-
-    cd.pop();
-  }
-
-  var file_num = $("<span>").addClass("file-num-span").text("" + val.files.length);
-  var file_size = $("<span>").addClass("file-size-span").text(humanFileSize(total_size));
-  file_info_show.append(file_num).append(file_size);
+    $file_brief
+        .append(
+            $("<span>").addClass("ml-file-number").text("" + info.files.length))
+        .append("个文件")
+        .append(
+            $("<span>").addClass("ml-file-size").text(humanFileSize(total_size)));
 }
 
 function changePage (page) {
-  var maxpage = $("#movie-table").data("maxpage");
+  var maxpage = $("#ml-table").data("maxpage");
 
   if (page >= maxpage || page < 0) {
     return;
@@ -141,11 +139,11 @@ function changePage (page) {
 
   var todisplay = all_movies.slice(page*entry_per_page, (page+1)*(entry_per_page));
 
-  $("#movie-table").data("page", page);
+  $("#ml-table").data("page", page);
 
-  $("#movie-table-body").empty();
+  $("#ml-table-body").empty();
   todisplay.forEach(function (mid) {
-    addRow(mid);
+      addRow(mid);
   });
 
   $("#current-page").text(page+1);
@@ -153,205 +151,186 @@ function changePage (page) {
 }
 
 function setupPages () {
-  var page_n = Math.ceil(all_movies.length / entry_per_page);
-  $("#movie-table").data("maxpage", page_n != 0 ? page_n : 1);
+    var page_n = Math.ceil(all_movies.length / entry_per_page);
+    $("#ml-table").data("maxpage", page_n > 0 ? page_n : 1);
 
-  $("#page-select-menu").empty();
-  for (var i=0; i<page_n; i++) {
-    var button = $("<a>").attr("id","page"+i).text("第 "+(i+1)+" 页");
-    $("#page-select-menu").append($("<li>").append(button));
+    $("#page-select-menu").empty();
+    for (var i=0; i<page_n; i++) {
+        var button = $("<a>").attr("id","page"+i).text("第 "+(i+1)+" 页");
+        $("#page-select-menu").append($("<li>").append(button));
 
-    (function (page) {
-      button.click(function () {changePage(page);});
-    })(i);
-  }
+        (function (page) {
+            button.click(function () {changePage(page);});
+        })(i);
+    }
 
-  changePage(0);
+    changePage(0);
 }
 
 function showAllMovies () {
-  all_movies = [];
-  $.each(movie_data, function (key, val) {
-    all_movies.push(key);
-  });
-  setupPages();
+    all_movies = Object.getOwnPropertyNames(all_movies);
+    setupPages();
 }
 
 function filterMovieByGenre (genre) {
-  all_movies = [];
-  $.each(movie_data, function (key, val) {
-    if (val.genres.indexOf(genre) != -1) {
-      all_movies.push(key);
-    }
-  });
-  setupPages();
+    all_movies = [];
+    $.each(movie_data, function (key, val) {
+        if (val.genres.indexOf(genre) != -1)
+            all_movies.push(key);
+    });
+    setupPages();
 }
 
 function filterMovieByPath (re) {
-  all_movies = [];
-  $.each(movie_data, function (key, val) {
-    var found = false;
-    val.files.forEach(function (elem) {
-      var p = elem.path.join('/');
-      if (p.search(re) != -1) {
-        found = true;
-        return false;
-      }
+    all_movies = [];
+    $.each(movie_data, function (key, val) {
+        var found = false;
+        val.files.forEach(function (elem) {
+            var p = elem.path.join('/');
+            if (p.search(re) != -1) {
+                found = true;
+                return false;
+            }
+        });
+        found ? all_movies.push(key) : 0;
     });
-    found ? all_movies.push(key) : 0;
-  });
-  setupPages();
+    setupPages();
 }
 
 function filterMovieByTitle (title) {
-  all_movies = [];
-  $.each(movie_data, function (key, val) {
-    var found = false;
-    val.title.concat(val.aka).forEach(function (ele){
-      if (ele.toLowerCase().search(title) != -1) {
-        found = true;
-        return false;
-      }
+    all_movies = [];
+    $.each(movie_data, function (key, val) {
+        var found = false;
+        val.title.concat(val.aka).forEach(function (ele){
+            if (ele.toLowerCase().search(title) != -1) {
+                found = true;
+                return false;
+            }
+        });
+        found ? all_movies.push(key) : 0;
     });
-    found ? all_movies.push(key) : 0;
-  });
-  setupPages();
+    setupPages();
 }
 
 function sortMovieBy (sortby, reverse) {
-  if (sortby == 'title') {
-    all_movies.sort(function (a, b) {
-      return movie_data[a].title[0].localeCompare(movie_data[b].title[0], 'zh-Hans-CN');
-    });
-  } else {
-    all_movies.sort(function (a, b) {
-      var na = movie_data[a][sortby] ? Number(movie_data[a][sortby]) : 0;
-      var nb = movie_data[b][sortby] ? Number(movie_data[b][sortby]) : 0;
-      return na-nb;
-    });
-  }
+    if (sortby == 'title')
+        all_movies.sort(function (a, b) {
+            return movie_data[a].title[0].localeCompare(movie_data[b].title[0], 'zh-Hans-CN');
+        });
+    else
+        all_movies.sort(function (a, b) {
+            var na = movie_data[a][sortby] ? Number(movie_data[a][sortby]) : 0;
+            var nb = movie_data[b][sortby] ? Number(movie_data[b][sortby]) : 0;
+            return na-nb;
+        });
 
-  reverse ? all_movies.reverse() : 0;
-  changePage(0);
+    reverse ? all_movies.reverse() : 0;
+    changePage(0);
 }
 
 $(document).ready(function() {
+    $.getJSON("/list.json", function (data) {
+        movie_data = data;
 
-  $.getJSON("/list.json", function (data) {
-    movie_data = data;
+        $.each(data, function (key, info) {
+            info.title.forEach(function (e) {
+                autocomp.name.indexOf(e) == -1 && autocomp.name.push(e);
+            });
+            info.genres.forEach(function (e) {
+                autocomp.genre.indexOf(e) == -1 && autocomp.genre.push(e);
+            });
+            all_movies.push(key);
+        });
 
-    $.each(data, function (key, val) {
-      val.title.forEach( function (e) {
-        if (autocomp_name.indexOf(e) == -1) {
-          autocomp_name.push(e);
+        setupPages();
+
+        // parse psudo get params
+        var stype = getParameterByName("type");
+        var skey = getParameterByName("type");
+        if (stype && skey) {
+            $("#search-type").val(getParameterByName("type"));
+            $("#search-key").val(getParameterByName("key"));
+            $("#search-btn").click();
         }
-      });
 
-      val.genres.forEach(function (e) {
-        if (autocomp_genre.indexOf(e) == -1) {
-          autocomp_genre.push(e);
-        }
-      })
+        $('#search-key').keypress(function(event) {
+            if (event.keyCode == 13) {
+                event.preventDefault();
+                $('#searchbutton').click();
+                return false;
+            }
+            else
+                return true;
+        }).autocomplete({
+            source: function (request, response) {
+                var key = request.term.toLowerCase();
+                var src;
 
-      all_movies.push(key);
+                if ($('#searchtype').val() == "title")
+                    src = autocomp.name;
+                else if ($('#searchtype').val() == "genre")
+                    src = autocomp.genre;
+                else
+                    return;
+
+                response($.grep(src, function (s) {
+                    return s.toLowerCase().indexOf(key) != -1;
+                }));
+            },
+        });
     });
 
-    setupPages();
+    $('body').on('click', '.unsorted', function() {
+        var sortby = $(this).data("sortby");
 
-    var stype = getParameterByName("type");
-    var skey = getParameterByName("type");
-    if (stype && skey) {
-      $("#searchtype").val(getParameterByName("type"));
-      $("#searchkey").val(getParameterByName("key"));
-      $("#searchbutton").click();
-    }
-  });
+        $('.sortdown, .sortup').addClass('unsorted');
+        $('.sortdown').removeClass('sortdown');
+        $('.sortup').removeClass('sortup');
 
-  $('#searchkey').autocomplete ({
-    source: function (request, response) {
-      var key = request.term.toLowerCase();
-      function key_in_str (s) {
-        return s.toLowerCase().indexOf(key) != -1;
-      }
+        $(this).removeClass('unsorted');
+        $(this).addClass('sortdown');
 
-      if ($('#searchtype').val() == "title") {
-        response($.grep(autocomp_name, key_in_str));
-      }
-      else if ($('#searchtype').val() == "genre") {
-        response($.grep(autocomp_genre, key_in_str));
-      }
-    }
-  });
+        sortMovieBy(sortby);
+    });
 
-  $('#searchbutton').click(function () {
-    var type = $("#searchtype").val();
-    var keyword = $("#searchkey").val();
+    $('body').on('click', '.sortdown', function() {
+        var sortby = $(this).data("sortby");
+        $(this).removeClass('sortdown');
+        $(this).addClass('sortup');
+        sortMovieBy(sortby, true);
+    });
 
-    if (type == 'title') {
+    $('body').on('click', '.sortup', function() {
+        var sortby = $(this).data("sortby");
+        $(this).removeClass('sortup');
+        $(this).addClass('sortdown');
+        sortMovieBy(sortby);
+    });
+
+    $('#first-page').click(function () {changePage(0);});
+    $('#last-page').click(function () {changePage($("#ml-table").data("maxpage")-1)});
+    $('#prev-page').click(function () {changePage($("#ml-table").data("page")-1)});
+    $('#next-page').click(function () {changePage($("#ml-table").data("page")+1)});
+});
+
+function search() {
+    var type = $("#search-type").val();
+    var keyword = $("#search-key").val();
+
+    if (type == 'title')
       filterMovieByTitle(keyword);
-    }
-    else if (type == 'genre') {
+    else if (type == 'genre')
       filterMovieByGenre(keyword);
-    }
-    else if (type == 'path'){
-      var re = new RegExp(keyword, "i");
-      filterMovieByPath(re);
-    }
+    else if (type == 'path')
+      filterMovieByPath(new RegExp(keyword, "i"));
 
     window.history.pushState(
         null, null,
-        window.location.pathname +
-            "?type=" + $("#searchtype").val() +
-            "&key=" + $("#searchkey").val());
-  });
+        window.location.pathname + "?type=" + type + "&key=" + keyword);
+}
 
-  $('#searchkey').keypress(function(event) {
-    if (event.keyCode == 13) {
-      event.preventDefault();
-      $('#searchbutton').click();
-      return false;
-    }
-    return true;
-  });
-
-  $('#resetbutton').click(function () {
+function reset() {
     $("#searchkey").val("");
     showAllMovies();
-    window.history.pushState(
-        null, null,
-        window.location.pathname);
-  });
-
-  $('body').on('click', '.unsorted', function() {
-    var sortby = $(this).data("sortby");
-
-    $('.sortdown, .sortup').addClass('unsorted');
-    $('.sortdown').removeClass('sortdown');
-    $('.sortup').removeClass('sortup');
-
-    $(this).removeClass('unsorted');
-    $(this).addClass('sortdown');
-
-    sortMovieBy(sortby);
-  });
-
-  $('body').on('click', '.sortdown', function() {
-    var sortby = $(this).data("sortby");
-    $(this).removeClass('sortdown');
-    $(this).addClass('sortup');
-    sortMovieBy(sortby, true);
-  });
-
-  $('body').on('click', '.sortup', function() {
-    var sortby = $(this).data("sortby");
-    $(this).removeClass('sortup');
-    $(this).addClass('sortdown');
-    sortMovieBy(sortby);
-  });
-
-  $('#first-page').click(function () {changePage(0);});
-  $('#last-page').click(function () {changePage($("#movie-table").data("maxpage")-1)});
-  $('#prev-page').click(function () {changePage($("#movie-table").data("page")-1)});
-  $('#next-page').click(function () {changePage($("#movie-table").data("page")+1)});
-
-});
+    window.history.pushState(null, null, window.location.pathname);
+}
