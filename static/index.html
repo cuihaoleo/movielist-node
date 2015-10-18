@@ -13,49 +13,46 @@
   <script src="/js/bootstrap.min.js"></script>
 </head>
 <body>
-  <div class="container">
 
-    <div class="row"><br /></row>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
 
-    <div class="row">
-      <div class="col-xs-8">
-        <form class="form-inline" role="form" id="searchform">
-          <input type="text" autocomplete="off"
-                 class="form-control" placeholder="关键词" id="search-key">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <a class="navbar-brand" id="brand" onclick="resetSearch()">电影列表</a>
+      </div>
 
+      <form class="navbar-form navbar-left" role="search" id="search-form">
+        <div class="form-group">
+          <input type="text" autocomplete="off" class="form-control" placeholder="关键词" id="search-key">
           <select class="form-control" id="search-type" name="type">
             <option value="title">电影名称</option>
             <option value="genre">电影类型</option>
             <option value="path">文件路径（正则）</option>
           </select>
+        </div>
+        <button type="button" class="btn btn-default" id="search-btn" onclick="search()">搜索</button>
+        <button type="button" class="btn btn-default" id="reset-btn" onclick="resetSearch()">清空</button>
+      </form>
 
-          <button type="button" class="btn btn-default" id="search-btn" onclick="search()">搜索</button>
-          <button type="button" class="btn btn-default" id="reset-btn" onclick="reset()">清空</button>
-        </form>
-      </div>
-
-      <div class="col-xs-4">
-        <div id="page-select">
-          <div class="btn-group">
-            <button type="button" class="btn btn-default" id="first-page">&laquo;</button>
-            <button type="button" class="btn btn-default" id="prev-page">上页</button>
-            <button type="button" class="btn btn-default" data-toggle="dropdown" aria-expanded="false">
-              <span id="page-tip">
-                <span id="current-page"></span> / <span id="max-page"></span>
-                <span class="caret"></span>
-              </span>
-            </button>
+      <ul class="nav navbar-nav navbar-right" id="page-select">
+        <li><a id="first-page">&laquo;</a></li>
+        <li><a id="prev-page">上页</a></li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+              <span id="current-page">1</span> / <span id="max-page">1</span>
+              <span class="caret"></span>
+            </a>
             <ul class="dropdown-menu" role="menu" id="page-select-menu">
             </ul>
-            <button type="button" class="btn btn-default" id="next-page">下页</button>
-            <button type="button" class="btn btn-default" id="last-page">&raquo;</button>
-          </div>
-        </div>
-      </div>
+        </li>
+        <li><a id="next-page">下页</a></li>
+        <li><a id="last-page">&raquo;</a></li>
+      </ul>
     </div>
+  </nav>
 
-    <div class="row"><br /></row>
-
+  <div class="container">
     <div class="row">
       <table id="ml-table" class="table">
         <thead>

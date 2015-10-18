@@ -168,7 +168,10 @@ function setupPages () {
 }
 
 function showAllMovies () {
-    all_movies = Object.getOwnPropertyNames(all_movies);
+    all_movies = [];
+    $.each(movie_data, function (key, val) {
+        all_movies.push(key);
+    });
     setupPages();
 }
 
@@ -329,7 +332,7 @@ function search() {
         window.location.pathname + "?type=" + type + "&key=" + keyword);
 }
 
-function reset() {
+function resetSearch() {
     $("#search-key").val("");
     showAllMovies();
     window.history.pushState(null, null, window.location.pathname);

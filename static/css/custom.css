@@ -33,13 +33,27 @@ table {
   overflow-x: hidden;
 }
 
+#brand {
+  cursor: pointer;
+}
+
+#brand:before {
+  content: "";
+  font-family: "Glyphicons Halflings";
+  padding-right: 5px;
+}
+
+#search-box {
+    padding-left: 0;
+    float: left;
+}
+
 #search-form {
-  float: left;
+  display: inline;
 }
 
 #page-select {
-  float: right;
-  margin-left: 1em;
+  cursor: pointer;
 }
 
 #ml-table-header {
