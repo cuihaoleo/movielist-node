@@ -232,6 +232,8 @@ function sortMovieBy (sortby, reverse) {
 }
 
 $(document).ready(function() {
+    $('#loading-modal').modal('show');
+
     $.getJSON("/list.json", function (data) {
         movie_data = data;
 
@@ -281,6 +283,8 @@ $(document).ready(function() {
                 }));
             },
         });
+
+        $('#loading-modal').modal('hide');
     });
 
     $('body').on('click', '.unsorted', function() {
