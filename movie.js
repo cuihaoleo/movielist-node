@@ -165,7 +165,7 @@ function http_get_list_json (req, res) {
 
         Promise.all(futures).then(function () {
             for (let i in reply) {
-                if (!reply[i].title) {
+                if (!reply[i].title || !reply[i].title[0]) {
                     delete reply[i];
                 }
             }
