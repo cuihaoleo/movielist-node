@@ -1,5 +1,9 @@
 "use strict";
 
+if (typeof Promise == 'undefined') {
+    var Promise = require('promise');
+}
+
 var douban_movie = require("./lib/douban_movie.js");
 var omdb_movie = require("./lib/omdb_movie.js");
 var parse_file_list = require("./lib/parse_file_list");
@@ -81,7 +85,7 @@ function http_get_list_json (req, res) {
             last_reply = new Object();
         }
 
-        for (let elem of list) {
+        list.forEach(function (elem) {
             var promise = new Promise(function (global_resolve) {
                 var fpath = elem[0], finfo = elem[1];
                 parse_file_list.getMID(fpath, function (err, mid) {
@@ -161,10 +165,10 @@ function http_get_list_json (req, res) {
             });
 
             futures.push(promise);
-        }
+        });
 
         Promise.all(futures).then(function () {
-            for (let i in reply) {
+            for (var i in reply) {
                 if (!reply[i].title || !reply[i].title[0]) {
                     delete reply[i];
                 }

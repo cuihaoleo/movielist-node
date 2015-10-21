@@ -4,9 +4,10 @@
   "description": "Movie List~",
   "main": "movie.js",
   "dependencies": {
+    "compression": "~1.4.3",
     "express": "~4.12.3",
+    "promise": "^7.0.4",
     "redis": "^0.12.1",
-    "rwlock": "^4.0.0",
-    "compression": "~1.4.3"
+    "rwlock": "^4.0.0"
   }
 }
