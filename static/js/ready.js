@@ -97,6 +97,7 @@ function addRow (key) {
 
     var total_size = 0;
     var cd = [];
+    var latest_time = '0';
     for (var finfo of info.files) {
         var path = finfo.path;
         while (cd.length > 0 && cd[cd.length-1] != path[cd.length-1])
@@ -119,7 +120,11 @@ function addRow (key) {
             .appendTo($dir);
 
         cd.pop();
+
         total_size += finfo.size;
+        console.log(finfo.time);
+        if (finfo.time > latest_time)
+            latest_time = finfo.time;
     }
 
     $file_brief
@@ -127,7 +132,9 @@ function addRow (key) {
             $("<span>").addClass("ml-file-number").text("" + info.files.length))
         .append("个文件")
         .append(
-            $("<span>").addClass("ml-file-size").text(humanFileSize(total_size)));
+            $("<span>").addClass("ml-file-size").text(humanFileSize(total_size)))
+        .append(
+            $("<div>").addClass("ml-file-date").text(convertDate(latest_time)));
 }
 
 function changePage (page) {
@@ -219,6 +226,19 @@ function sortMovieBy (sortby, reverse) {
     if (sortby == 'title')
         all_movies.sort(function (a, b) {
             return movie_data[a].title[0].localeCompare(movie_data[b].title[0], 'zh-Hans-CN');
+        });
+    else if (sortby == 'date')
+        all_movies.sort(function (a, b) {
+            var ta = '0', tb = '0';
+            movie_data[a]["files"].forEach(function (elem) {
+                if (elem.time > ta)
+                    ta = elem.time;
+            });
+            movie_data[b]["files"].forEach(function (elem) {
+                if (elem.time > tb)
+                    tb = elem.time;
+            });
+            return ta > tb ? 1 : -1;
         });
     else
         all_movies.sort(function (a, b) {
@@ -325,11 +345,11 @@ function search() {
     var keyword = $("#search-key").val();
 
     if (type == 'title')
-      filterMovieByTitle(keyword);
+        filterMovieByTitle(keyword);
     else if (type == 'genre')
-      filterMovieByGenre(keyword);
+        filterMovieByGenre(keyword);
     else if (type == 'path')
-      filterMovieByPath(new RegExp(keyword, "i"));
+        filterMovieByPath(new RegExp(keyword, "i"));
 
     window.history.pushState(
         null, null,
@@ -340,4 +360,18 @@ function resetSearch() {
     $("#search-key").val("");
     showAllMovies();
     window.history.pushState(null, null, window.location.pathname);
+}
+
+function convertDate(datestr) {
+    var time = new Date(datestr.split('.'));
+    var now = new Date();
+    var elapsed = Math.ceil((now - time) / (24*3600000.0));
+    if (elapsed <= 1)
+        return "一天之内";
+    else if (elapsed <= 31)
+        return elapsed + " 天前";
+    else if (elapsed <= 365.25)
+        return Math.ceil(elapsed / 30.4375) + " 月前";
+    else
+        return Math.ceil(elapsed / 365.25) + " 年前";
 }

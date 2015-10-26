@@ -138,3 +138,12 @@ table {
 .ml-file-size:after {
     content: ")";
 }
+
+.ml-file-date:before {
+    content: "更新于 ";
+}
+
+.ml-file-date {
+    font-size: 80%;
+    color: #888;
+}
