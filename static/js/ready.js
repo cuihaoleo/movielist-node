@@ -65,7 +65,7 @@ function addRow (key) {
 
     // genres column
     var $genres_col = $("<td>").appendTo($row);
-    for (var genre of info.genres)
+    info.genres.forEach(function (genre) {
         $("<a>", {
             class: "label label-primary ml-genre",
             text: genre,
@@ -74,6 +74,7 @@ function addRow (key) {
                 $("#search-key").val(genre);
             $('#search-btn').click();
         }).appendTo($genres_col);
+    });
 
     // file info
     var $file_col = $("<td>").appendTo($row);
@@ -98,7 +99,7 @@ function addRow (key) {
     var total_size = 0;
     var cd = [];
     var latest_time = '0';
-    for (var finfo of info.files) {
+    info.files.forEach(function(finfo) {
         var path = finfo.path;
         while (cd.length > 0 && cd[cd.length-1] != path[cd.length-1])
             cd.pop();
@@ -125,7 +126,7 @@ function addRow (key) {
         console.log(finfo.time);
         if (finfo.time > latest_time)
             latest_time = finfo.time;
-    }
+    });
 
     $file_brief
         .append(
@@ -363,7 +364,7 @@ function resetSearch() {
 }
 
 function convertDate(datestr) {
-    var time = new Date(datestr.split('.'));
+    var time = new Date(datestr.replace(/\./g, '-'));
     var now = new Date();
     var elapsed = Math.ceil((now - time) / (24*3600000.0));
     if (elapsed <= 1)
