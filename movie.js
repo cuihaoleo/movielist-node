@@ -42,11 +42,11 @@ MovieFileListLoader.prototype.load_json = function (path, callback) {
         }
 
         try {
-            var list = require('./list.json');
+            var list = JSON.parse(fs.readFileSync('./list.json', 'utf8'));
         }
         catch (e) {
             console.error("Cannot open list.json!");
-            callback(e);
+            callback && callback(e);
             return;
         }
 
@@ -54,7 +54,7 @@ MovieFileListLoader.prototype.load_json = function (path, callback) {
         parse_file_list.getMovieFiles(list, [], function (err, p, info) {
             if (err) {
                 console.error("Failed to parse list.json!");
-                callback(err);
+                callback && callback(err);
                 success = false;
             }
             else {
