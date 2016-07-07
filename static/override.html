@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <title>电影列表</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="/css/jquery-ui.min.css">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/custom.css">
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/jquery-ui.min.js"></script>
+  <!--script src="/js/ready.js"></script-->
+  <script src="/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+  <div id="loading-modal" class="modal fade" role="dialog">
+  </div>
+
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" id="brand" href=".">电影列表</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <form class="form-horizontal" method="post">
+      <div class="form-group">
+        <label for="path-glob" class="col-sm-2 control-label">Glob</label>
+        <div class="col-sm-8">
+          <input type="text" class="form-control" id="path-glob" name="path-glob"
+                 placeholder="Match part or entire path">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="douban-movie-id" class="col-sm-2 control-label">Douban URL</label>
+        <div class="col-sm-8">
+          <div class="input-group">
+            <span class="input-group-addon" id="douban-movie-url-prefix">https://movie.douban.com/subject/</span>
+            <input type="text" class="form-control" id="douban-movie-id" name="douban-movie-url"
+                   aria-describedby="douban-movie-url-prefix" pattern="[0-9]{0,10}"
+                   placeholder="1234567">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-8">
+          <button type="button" class="btn btn-info">Validate</button>
+          <button type="submit" id="apply-btn" class="btn btn-primary">Apply</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="row">
+      <div class="col-sm-offset-2 col-sm-8">
+        <table id="rule-table" class="table">
+          <thead>
+            <tr id="rule-table-header">
+              <th style="width: 50%">规则</th>
+              <th style="width: 30%">豆瓣链接</th>
+              <th style="width: 20%">操作</th>
+            </tr>
+          </thead>
+          <tbody id="rule-table-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    var DBMOVIE_SUB = "http://movie.douban.com/subject/";
+    var $table = $("#rule-table-body");
+
+    function refreshList() {
+      $.getJSON("override.json", function (data) {
+        $table.empty();
+        data.rules.forEach(function (item) {
+          var $row = $("<tr>").appendTo($table);
+          var $rule_col = $("<td>").appendTo($row);
+          var $link_col = $("<td>").appendTo($row);
+          var $action_col = $("<td>").appendTo($row);
+
+          // rule column
+          $rule_col.text(item.glob);
+
+          // link column
+          $("<a>", {
+              class: "rule-link",
+              text: "" + item.mid,
+              href: DBMOVIE_SUB + item.mid,
+          }).appendTo($link_col);
+        });
+      });
+    };
+
+    $("form").submit(function(event) {
+      event.preventDefault();
+
+      var movie_id = parseInt($('#douban-movie-id').val());
+      var glob = $('#path-glob').val();
+      if (!isNaN(movie_id)) {
+        $.post("override.action", { mid: movie_id, glob: glob}, function () {
+          refreshList();
+        });
+      }
+    });
+
+    refreshList();
+  </script>
+
+</body>
+</html>

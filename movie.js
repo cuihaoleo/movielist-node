@@ -8,6 +8,7 @@ var douban_movie = require("./lib/douban_movie.js");
 var omdb_movie = require("./lib/omdb_movie.js");
 var parse_file_list = require("./lib/parse_file_list");
 var fs = require('fs');
+var bodyParser = require('body-parser')
 
 var compression = require("compression");
 var express = require('express');
@@ -182,21 +183,53 @@ function http_get_list_json (req, res) {
 };
 
 
+function http_get_override_json (req, res) {
+    parse_file_list.getOverrides(function(list) {
+        res.json({
+            total: list.length,
+            rules: list
+        });
+    });
+}
+
+
+
+function http_post_override_action (req, res) {
+    var glob = req.body["glob"];
+    var mid = parseInt(req.body["mid"]);
+
+    if (!isNaN(mid)) {
+        parse_file_list.addOverrides(glob, mid, function() {
+            res.send("");
+        });
+    }
+}
+
+
 app.use(express.static(__dirname + '/static'));
 app.use(compression());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.get('/list.json', http_get_list_json);
+app.get('/override.json', http_get_override_json);
+app.post('/override.action', http_post_override_action);
 
 
 if (require.main === module) {
-    var port = Number(process.argv[2]);
+    var config = {};
 
-    if (!(port >= 0 && port < 65536)) {
-        port = 3000;
+    try {
+        config = require('./config');
+    } catch (e) {
+        config.port = 3000;
+        config.password = NaN;
     }
 
     file_list_loader.load_json("list.json");
+    parse_file_list.getOverrides();
     http_get_list_json();
 
-    console.log("Listen at port " + port);
-    app.listen(port);
+ 
+    console.log("Listen at port " + config.port);
+    app.listen(config.port);
 }
