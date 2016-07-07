@@ -4,8 +4,10 @@
   "description": "Movie List~",
   "main": "movie.js",
   "dependencies": {
+    "body-parser": "^1.15.2",
     "compression": "^1.6.2",
     "express": "^4.14.0",
+    "minimatch": "^3.0.2",
     "promise": "^7.1.1",
     "redis": "^2.6.2",
     "rwlock": "^5.0.0"
