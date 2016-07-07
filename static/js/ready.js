@@ -213,7 +213,7 @@ function filterMovieByTitle (title) {
     $.each(movie_data, function (key, val) {
         var found = false;
         val.title.concat(val.aka).forEach(function (ele){
-            if (ele.toLowerCase().search(title) != -1) {
+            if (ele.toLowerCase().search(title.toLowerCase()) != -1) {
                 found = true;
                 return false;
             }
