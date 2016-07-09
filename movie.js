@@ -196,6 +196,11 @@ function http_get_override_json (req, res) {
 }
 
 function http_post_override_action (req, res) {
+    if (req.cookies.password == config.password) {
+        res.send(":(");
+        return;
+    }
+
     var glob = req.body["glob"];
     var mid = parseInt(req.body["mid"]);
 
