@@ -123,7 +123,6 @@ function addRow (key) {
         cd.pop();
 
         total_size += finfo.size;
-        console.log(finfo.time);
         if (finfo.time > latest_time)
             latest_time = finfo.time;
     });
@@ -339,7 +338,31 @@ $(document).ready(function() {
     $('#last-page').click(function () {changePage($("#ml-table").data("maxpage")-1)});
     $('#prev-page').click(function () {changePage($("#ml-table").data("page")-1)});
     $('#next-page').click(function () {changePage($("#ml-table").data("page")+1)});
+
+    $("#msg-wrong-password").hide();
+    $('#btn-login').click(function () {
+        var password = $("#password-field").val();
+        document.cookie = "password" + "=" + escape(password);
+        $.get("cookie.test", function (result) {
+            if (result.trim() == "OK") {
+                document.location.reload();
+            } else {
+                $("#msg-wrong-password").show();
+            }
+        });
+    });
+
+    $.get("cookie.test", function (result) {
+        if (result.trim() == "OK") {
+            enableAdmin();
+        }
+    });
 });
+
+function enableAdmin() {
+    console.log("ADMIN mode");
+    // todo: admin mode
+}
 
 function search() {
     var type = $("#search-type").val();

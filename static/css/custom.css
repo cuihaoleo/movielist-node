@@ -147,3 +147,13 @@ table {
     font-size: 80%;
     color: #888;
 }
+
+#btn-maintenance {
+    padding-left: 10px;
+    opacity: 0.4;
+}
+
+#btn-maintenance:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}

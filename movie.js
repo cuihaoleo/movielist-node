@@ -8,10 +8,14 @@ var douban_movie = require("./lib/douban_movie.js");
 var omdb_movie = require("./lib/omdb_movie.js");
 var parse_file_list = require("./lib/parse_file_list");
 var fs = require('fs');
-var bodyParser = require('body-parser')
 
+var bodyParser = require('body-parser')
+var cookieParser = require('cookie-parser')
 var compression = require("compression");
 var express = require('express');
+
+var http = require('http');
+
 var app = express();
 
 function fillMovieInfo (obj, minfo) {
@@ -182,7 +186,6 @@ function http_get_list_json (req, res) {
     });
 };
 
-
 function http_get_override_json (req, res) {
     parse_file_list.getOverrides(function(list) {
         res.json({
@@ -191,8 +194,6 @@ function http_get_override_json (req, res) {
         });
     });
 }
-
-
 
 function http_post_override_action (req, res) {
     var glob = req.body["glob"];
@@ -205,24 +206,37 @@ function http_post_override_action (req, res) {
     }
 }
 
+function http_get_cookie_test (req, res) {
+    res.send(req.cookies.password == config.password ? "OK" : "Fail");
+}
+
 
 app.use(express.static(__dirname + '/static'));
 app.use(compression());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.get('/list.json', http_get_list_json);
 app.get('/override.json', http_get_override_json);
+app.get('/cookie.test', http_get_cookie_test);
 app.post('/override.action', http_post_override_action);
 
 
 if (require.main === module) {
-    var config = {};
+    var config_file;
+    var config = {
+        port: 3000,
+        password: NaN
+    };
 
     try {
-        config = require('./config');
+        config_file = require('./config');
     } catch (e) {
-        config.port = 3000;
-        config.password = NaN;
+        config_file = {};
+    }
+
+    for (var key in config_file) {
+        config[key] = config_file[key];
     }
 
     file_list_loader.load_json("list.json");

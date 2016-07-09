@@ -17,6 +17,27 @@
   <div id="loading-modal" class="modal fade" role="dialog">
   </div>
 
+  <div id="password-modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">高级设置</h4>
+        </div>
+        <div class="modal-body">
+          <form class="form-inline">
+            <div class="form-group">
+              <label for="password-field">密码</label>
+              <input type="password" class="form-control" id="password-field" name="password-field">
+            </div>
+            <button type="button" class="btn btn-default" id="btn-login">登录</button>
+          </form>
+          <p></p><p id="msg-wrong-password">密码不正确，请重试！</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <nav class="navbar navbar-default">
     <div class="container-fluid">
 
@@ -34,8 +55,11 @@
             <option value="path">文件路径（正则）</option>
           </select>
         </div>
+
         <button type="button" class="btn btn-default" id="search-btn" onclick="search()">搜索</button>
         <button type="button" class="btn btn-default" id="reset-btn" onclick="resetSearch()">清空</button>
+
+        <span class="glyphicon glyphicon-wrench" id="btn-maintenance" data-toggle="modal" data-target="#password-modal"></span>
       </form>
 
       <ul class="nav navbar-nav navbar-right" id="page-select">
